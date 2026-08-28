@@ -50,4 +50,5 @@ app.*.map.json
 # Firebase credentials - never commit these
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
-lib/core/services/firebase_options.dart
+# Note: firebase_options.dart is committed — it contains non-secret config
+# google-services.json is NOT committed — it contains signing keys
