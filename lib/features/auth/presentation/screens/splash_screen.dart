@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../providers/auth_provider.dart';
 
 /// Splash screen shown on app launch.
-/// Animates the logo in, then navigates to home after a short delay.
-class SplashScreen extends StatefulWidget {
+/// Checks Firebase auth state and navigates accordingly.
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fadeAnim;
@@ -44,17 +46,36 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Navigate to login or home depending on whether profile exists.
+    // Check auth state and navigate accordingly
     Future.delayed(const Duration(milliseconds: 2400), () {
       if (!mounted) return;
-      try {
-        final box = Hive.box<String>(AppConstants.hiveUserBox);
-        final hasProfile = box.get('profile') != null;
-        context.goNamed(hasProfile ? 'home' : 'login');
-      } catch (_) {
+      _checkAuth();
+    });
+  }
+
+  Future<void> _checkAuth() async {
+    try {
+      final authService = ref.read(authServiceProvider);
+      final isSignedIn = authService.isSignedIn;
+
+      // Also check local profile
+      final box = Hive.box<String>(AppConstants.hiveUserBox);
+      final hasProfile = box.get('profile') != null;
+
+      if (mounted) {
+        // If Firebase signed in AND local profile exists, go to home
+        if (isSignedIn && hasProfile) {
+          context.goNamed('home');
+        } else {
+          // Otherwise go to login/signup
+          context.goNamed('login');
+        }
+      }
+    } catch (_) {
+      if (mounted) {
         context.goNamed('login');
       }
-    });
+    }
   }
 
   @override
