@@ -5,3 +5,4 @@ export 'primary_button.dart';
 export 'streak_chip.dart';
 export 'student_avatar.dart';
 export 'xp_chip.dart';
+export 'xp_progress_bar.dart';
