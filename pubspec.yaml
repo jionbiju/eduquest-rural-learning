@@ -39,9 +39,6 @@ dependencies:
   # Connectivity & sync
   connectivity_plus: ^6.0.3
 
-  # Audio playback
-  just_audio: ^0.9.40
-
   # Routing
   go_router: ^14.2.7
 
