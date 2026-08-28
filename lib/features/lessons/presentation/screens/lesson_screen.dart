@@ -7,7 +7,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../providers/lesson_provider.dart';
-import '../widgets/audio_player_bar.dart';
 import '../widgets/difficulty_badge.dart';
 import '../widgets/lesson_illustration.dart';
 
@@ -91,13 +90,6 @@ class LessonScreen extends ConsumerWidget {
                         subjectEmoji: _emojiForTopic(topic.id),
                       ),
                       const SizedBox(height: 20),
-
-                      // ── Audio narration bar ───────────────────────────
-                      AudioPlayerBar(
-                        audioRef: topic.audioRef,
-                        language: locale,
-                      ),
-                      const SizedBox(height: 24),
 
                       // ── Lesson content ────────────────────────────────
                       Row(
