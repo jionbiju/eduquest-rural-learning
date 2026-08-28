@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/screens/splash_screen.dart';
+import '../../features/home/presentation/screens/home_screen.dart';
 
 part 'app_routes.dart';
 
@@ -23,7 +24,7 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.home,
       name: 'home',
-      builder: (context, state) => const _PlaceholderScreen(title: 'Home'),
+      builder: (context, state) => const HomeScreen(),
     ),
     GoRoute(
       path: '${AppRoutes.lesson}/:lessonId',
