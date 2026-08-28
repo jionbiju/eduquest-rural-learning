@@ -1,21 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../core/constants/app_constants.dart';
+import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/leaderboard/presentation/screens/leaderboard_screen.dart';
 import '../../features/lessons/presentation/screens/lesson_screen.dart';
-import '../../features/quiz/presentation/screens/quiz_screen.dart';
 import '../../features/quiz/presentation/screens/quiz_result_screen.dart';
+import '../../features/quiz/presentation/screens/quiz_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../widgets/shell_screen.dart';
 
 part 'app_routes.dart';
 
-/// Top-level [GoRouter] configuration for EduQuest.
-/// lesson and quiz are nested under home so back navigation works correctly.
+/// Returns true if a student profile exists in Hive.
+bool _hasProfile() {
+  try {
+    final box = Hive.box<String>(AppConstants.hiveUserBox);
+    return box.get('profile') != null;
+  } catch (_) {
+    return false;
+  }
+}
+
+/// Top-level [GoRouter] for EduQuest.
 final appRouter = GoRouter(
   initialLocation: AppRoutes.splash,
   debugLogDiagnostics: true,
+  redirect: (context, state) {
+    final onSplash = state.matchedLocation == AppRoutes.splash;
+    final onLogin = state.matchedLocation == AppRoutes.login;
+
+    // Always let splash and login through.
+    if (onSplash || onLogin) return null;
+
+    // Any other route — redirect to login if no profile.
+    if (!_hasProfile()) return AppRoutes.login;
+
+    return null;
+  },
   routes: [
     GoRoute(
       path: AppRoutes.splash,
@@ -25,82 +50,66 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.login,
       name: 'login',
-      builder: (context, state) => const _PlaceholderScreen(title: 'Login'),
+      builder: (context, state) => const LoginScreen(),
     ),
-    GoRoute(
-      path: AppRoutes.home,
-      name: 'home',
-      builder: (context, state) => const HomeScreen(),
+
+    // ── Shell wraps all main screens with bottom nav ──────────────────
+    ShellRoute(
+      builder: (context, state, child) => ShellScreen(child: child),
       routes: [
-        // Lesson nested under home — back button returns to home.
         GoRoute(
-          path: 'lesson/:lessonId',
-          name: 'lesson',
-          builder: (context, state) => LessonScreen(
-            topicId: state.pathParameters['lessonId'] ?? '',
-          ),
+          path: AppRoutes.home,
+          name: 'home',
+          builder: (context, state) => const HomeScreen(),
           routes: [
-            // Quiz nested under lesson — back button returns to lesson.
             GoRoute(
-              path: 'quiz',
-              name: 'quiz',
-              builder: (context, state) => QuizScreen(
+              path: 'lesson/:lessonId',
+              name: 'lesson',
+              builder: (context, state) => LessonScreen(
                 topicId: state.pathParameters['lessonId'] ?? '',
               ),
               routes: [
-                // Result nested under quiz — back goes to home via goNamed.
                 GoRoute(
-                  path: 'result',
-                  name: 'quiz_result',
-                  builder: (context, state) {
-                    final extra = state.extra as Map<String, dynamic>;
-                    return QuizResultScreen(
-                      correctCount: extra['correctCount'] as int,
-                      totalQuestions: extra['totalQuestions'] as int,
-                      xpEarned: extra['xpEarned'] as int,
-                      topicId: extra['topicId'] as String,
-                    );
-                  },
+                  path: 'quiz',
+                  name: 'quiz',
+                  builder: (context, state) => QuizScreen(
+                    topicId: state.pathParameters['lessonId'] ?? '',
+                  ),
+                  routes: [
+                    GoRoute(
+                      path: 'result',
+                      name: 'quiz_result',
+                      builder: (context, state) {
+                        final extra =
+                            state.extra as Map<String, dynamic>;
+                        return QuizResultScreen(
+                          correctCount: extra['correctCount'] as int,
+                          totalQuestions: extra['totalQuestions'] as int,
+                          xpEarned: extra['xpEarned'] as int,
+                          topicId: extra['topicId'] as String,
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
           ],
         ),
+        GoRoute(
+          path: AppRoutes.leaderboard,
+          name: 'leaderboard',
+          builder: (context, state) => const LeaderboardScreen(),
+        ),
+        GoRoute(
+          path: AppRoutes.settings,
+          name: 'settings',
+          builder: (context, state) => const SettingsScreen(),
+        ),
       ],
-    ),
-    GoRoute(
-      path: AppRoutes.leaderboard,
-      name: 'leaderboard',
-      builder: (context, state) => const LeaderboardScreen(),
-    ),
-    GoRoute(
-      path: AppRoutes.settings,
-      name: 'settings',
-      builder: (context, state) => const SettingsScreen(),
     ),
   ],
   errorBuilder: (context, state) => Scaffold(
-    body: Center(
-      child: Text('Page not found: ${state.error}'),
-    ),
+    body: Center(child: Text('Page not found: ${state.error}')),
   ),
 );
-
-/// Temporary placeholder used until real screens are wired in.
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen({required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-      ),
-    );
-  }
-}
