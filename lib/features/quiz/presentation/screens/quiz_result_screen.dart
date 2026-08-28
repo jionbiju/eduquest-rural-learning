@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../home/providers/home_provider.dart';
 
 /// Summary screen shown after a quiz is completed.
-class QuizResultScreen extends StatelessWidget {
+class QuizResultScreen extends ConsumerStatefulWidget {
   const QuizResultScreen({
     super.key,
     required this.correctCount,
@@ -20,8 +22,28 @@ class QuizResultScreen extends StatelessWidget {
   final int xpEarned;
   final String topicId;
 
-  double get _accuracy => totalQuestions > 0
-      ? correctCount / totalQuestions
+  @override
+  ConsumerState<QuizResultScreen> createState() => _QuizResultScreenState();
+}
+
+class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Award XP to student profile after quiz completes.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.xpEarned > 0) {
+        ref.read(studentProfileProvider.notifier).addXp(widget.xpEarned);
+      }
+      // First lesson badge.
+      ref
+          .read(studentProfileProvider.notifier)
+          .earnBadge('first_lesson');
+    });
+  }
+
+  double get _accuracy => widget.totalQuestions > 0
+      ? widget.correctCount / widget.totalQuestions
       : 0;
 
   String get _resultEmoji {
@@ -58,29 +80,17 @@ class QuizResultScreen extends StatelessWidget {
           child: Column(
             children: [
               const Spacer(),
-
-              // ── Result emoji ─────────────────────────────────────────
-              Text(
-                _resultEmoji,
-                style: const TextStyle(fontSize: 80),
-              ),
+              Text(_resultEmoji, style: const TextStyle(fontSize: 80)),
               const SizedBox(height: 16),
-
-              Text(
-                _resultTitle,
-                style: AppTextStyles.displayMedium,
-              ),
+              Text(_resultTitle, style: AppTextStyles.displayMedium),
               const SizedBox(height: 8),
               Text(
                 _resultMessage,
                 style: AppTextStyles.bodyLarge.copyWith(
-                  color: AppColors.grey600,
-                ),
+                    color: AppColors.grey600),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-
-              // ── Score card ───────────────────────────────────────────
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -96,39 +106,30 @@ class QuizResultScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    // Score fraction
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _StatItem(
                           label: 'Score',
-                          value: '$correctCount / $totalQuestions',
+                          value:
+                              '${widget.correctCount} / ${widget.totalQuestions}',
                           color: _scoreColor,
                         ),
-                        Container(
-                          width: 1,
-                          height: 48,
-                          color: AppColors.grey200,
-                        ),
+                        Container(width: 1, height: 48, color: AppColors.grey200),
                         _StatItem(
                           label: 'Accuracy',
                           value: '${(_accuracy * 100).toInt()}%',
                           color: _scoreColor,
                         ),
-                        Container(
-                          width: 1,
-                          height: 48,
-                          color: AppColors.grey200,
-                        ),
+                        Container(width: 1, height: 48, color: AppColors.grey200),
                         _StatItem(
                           label: 'XP Earned',
-                          value: '+$xpEarned',
+                          value: '+${widget.xpEarned}',
                           color: AppColors.xpGold,
                         ),
                       ],
                     ),
                     const SizedBox(height: 20),
-                    // Accuracy bar
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: TweenAnimationBuilder<double>(
@@ -146,10 +147,7 @@ class QuizResultScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const Spacer(),
-
-              // ── Actions ──────────────────────────────────────────────
               PrimaryButton(
                 label: 'Back to Home',
                 icon: Icons.home_rounded,
@@ -161,7 +159,7 @@ class QuizResultScreen extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () => context.goNamed(
                     'quiz',
-                    pathParameters: {'lessonId': topicId},
+                    pathParameters: {'lessonId': widget.topicId},
                   ),
                   icon: const Icon(Icons.refresh_rounded),
                   label: const Text('Try Again'),
