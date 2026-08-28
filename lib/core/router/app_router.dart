@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
+import '../../features/lessons/presentation/screens/lesson_screen.dart';
 
 part 'app_routes.dart';
 
@@ -29,8 +30,8 @@ final appRouter = GoRouter(
     GoRoute(
       path: '${AppRoutes.lesson}/:lessonId',
       name: 'lesson',
-      builder: (context, state) => _PlaceholderScreen(
-        title: 'Lesson ${state.pathParameters['lessonId']}',
+      builder: (context, state) => LessonScreen(
+        topicId: state.pathParameters['lessonId'] ?? '',
       ),
     ),
     GoRoute(
