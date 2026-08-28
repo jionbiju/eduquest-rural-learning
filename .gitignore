@@ -46,3 +46,8 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Firebase credentials - never commit these
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/core/services/firebase_options.dart
