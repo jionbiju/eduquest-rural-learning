@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../home/providers/home_provider.dart';
+import '../../../sync/data/models/sync_action.dart';
+import '../../../sync/providers/sync_provider.dart';
 
 /// Summary screen shown after a quiz is completed.
 class QuizResultScreen extends ConsumerStatefulWidget {
@@ -30,15 +33,50 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
   @override
   void initState() {
     super.initState();
-    // Award XP to student profile after quiz completes.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final profile = ref.read(studentProfileProvider);
+      final syncService = ref.read(syncServiceProvider);
+
+      // 1. Award XP locally.
       if (widget.xpEarned > 0) {
         ref.read(studentProfileProvider.notifier).addXp(widget.xpEarned);
+
+        // 2. Queue XP sync action.
+        await syncService.enqueue(
+          SyncAction(
+            id: const Uuid().v4(),
+            type: SyncActionType.xpEarned,
+            studentId: profile.id,
+            payload: {'amount': widget.xpEarned},
+            createdAt: DateTime.now(),
+          ),
+        );
       }
-      // First lesson badge.
-      ref
-          .read(studentProfileProvider.notifier)
-          .earnBadge('first_lesson');
+
+      // 3. Queue lesson completed sync action.
+      await syncService.enqueue(
+        SyncAction.lessonCompleted(
+          id: const Uuid().v4(),
+          studentId: profile.id,
+          lessonId: widget.topicId,
+          xpEarned: widget.xpEarned,
+        ),
+      );
+
+      // 4. Award first lesson badge locally + queue.
+      ref.read(studentProfileProvider.notifier).earnBadge('first_lesson');
+      await syncService.enqueue(
+        SyncAction(
+          id: const Uuid().v4(),
+          type: SyncActionType.badgeEarned,
+          studentId: profile.id,
+          payload: {'badgeId': 'first_lesson'},
+          createdAt: DateTime.now(),
+        ),
+      );
+
+      // 5. Flush queue immediately (online sync if connected).
+      await syncService.flushQueue();
     });
   }
 
