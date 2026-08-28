@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-// Screen imports will be added as screens are built.
-// Using placeholder screens until features are scaffolded.
+import '../../features/auth/presentation/screens/splash_screen.dart';
 
 part 'app_routes.dart';
 
@@ -14,7 +13,7 @@ final appRouter = GoRouter(
     GoRoute(
       path: AppRoutes.splash,
       name: 'splash',
-      builder: (context, state) => const _PlaceholderScreen(title: 'Splash'),
+      builder: (context, state) => const SplashScreen(),
     ),
     GoRoute(
       path: AppRoutes.login,
