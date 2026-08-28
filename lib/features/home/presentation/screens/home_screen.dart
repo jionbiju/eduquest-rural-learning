@@ -17,10 +17,10 @@ class HomeScreen extends ConsumerWidget {
 
   // Static subject data — will come from bundle provider later.
   static const _subjects = [
-    _SubjectData('Mathematics', '🔢', AppColors.primary, 3),
-    _SubjectData('Science', '🔬', AppColors.success, 3),
-    _SubjectData('English', '📖', AppColors.secondary, 2),
-    _SubjectData('History', '🏛️', AppColors.badgePurple, 2),
+    _SubjectData('Mathematics', '🔢', AppColors.primary, 3, 'math_addition'),
+    _SubjectData('Science', '🔬', AppColors.success, 3, 'science_plants'),
+    _SubjectData('English', '📖', AppColors.secondary, 2, 'math_subtraction'),
+    _SubjectData('History', '🏛️', AppColors.badgePurple, 2, 'science_water'),
   ];
 
   @override
@@ -107,7 +107,7 @@ class HomeScreen extends ConsumerWidget {
                           color: s.color,
                           topicsCount: s.topicsCount,
                           onTap: () => context.goNamed('lesson',
-                              pathParameters: {'lessonId': s.title.toLowerCase()}),
+                              pathParameters: {'lessonId': s.topicId}),
                         );
                       },
                       childCount: _subjects.length,
@@ -130,9 +130,10 @@ class HomeScreen extends ConsumerWidget {
 
 /// Simple data holder for subject grid items.
 class _SubjectData {
-  const _SubjectData(this.title, this.emoji, this.color, this.topicsCount);
+  const _SubjectData(this.title, this.emoji, this.color, this.topicsCount, this.topicId);
   final String title;
   final String emoji;
   final Color color;
   final int topicsCount;
+  final String topicId;
 }
