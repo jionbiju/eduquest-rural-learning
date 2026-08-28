@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../features/sync/data/repositories/firestore_repository.dart';
 import '../data/models/student_profile.dart';
 
 /// Provides the current student profile backed by Hive.
@@ -63,6 +64,17 @@ class StudentProfileNotifier extends StateNotifier<StudentProfile> {
       language: language,
     );
     await _persist();
+
+    // Push profile to Firestore immediately.
+    try {
+      final firestore = FirestoreRepository();
+      await firestore.upsertProfile(
+        studentId: state.id,
+        data: state.toJson(),
+      );
+    } catch (_) {
+      // Will sync later when online.
+    }
   }
 
   void addXp(int amount) {
