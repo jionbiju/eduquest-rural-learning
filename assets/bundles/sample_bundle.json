@@ -1,0 +1,338 @@
+{
+  "bundleVersion": "1.0.0",
+  "generatedAt": "2026-08-28T00:00:00Z",
+  "subjects": [
+    {
+      "id": "math",
+      "name": { "en": "Mathematics", "hi": "गणित" },
+      "icon": "math_icon",
+      "topics": [
+        {
+          "id": "math_addition",
+          "name": { "en": "Addition", "hi": "जोड़" },
+          "difficulty": 1,
+          "audioRef": "audio/math_addition_en.opus",
+          "illustrationRef": "images/math_addition.webp",
+          "lessonText": {
+            "en": "Addition means combining two or more numbers together to find a total.",
+            "hi": "जोड़ का अर्थ है दो या अधिक संख्याओं को मिलाकर कुल ज्ञात करना।"
+          },
+          "questions": [
+            {
+              "id": "math_add_q1",
+              "difficulty": 1,
+              "text": { "en": "What is 3 + 4?", "hi": "3 + 4 क्या है?" },
+              "options": ["5", "6", "7", "8"],
+              "correctIndex": 2,
+              "explanation": { "en": "3 + 4 = 7", "hi": "3 + 4 = 7" }
+            },
+            {
+              "id": "math_add_q2",
+              "difficulty": 1,
+              "text": { "en": "What is 5 + 2?", "hi": "5 + 2 क्या है?" },
+              "options": ["6", "7", "8", "9"],
+              "correctIndex": 1,
+              "explanation": { "en": "5 + 2 = 7", "hi": "5 + 2 = 7" }
+            },
+            {
+              "id": "math_add_q3",
+              "difficulty": 2,
+              "text": { "en": "What is 13 + 18?", "hi": "13 + 18 क्या है?" },
+              "options": ["29", "30", "31", "32"],
+              "correctIndex": 2,
+              "explanation": { "en": "13 + 18 = 31", "hi": "13 + 18 = 31" }
+            },
+            {
+              "id": "math_add_q4",
+              "difficulty": 2,
+              "text": { "en": "What is 24 + 37?", "hi": "24 + 37 क्या है?" },
+              "options": ["59", "60", "61", "62"],
+              "correctIndex": 2,
+              "explanation": { "en": "24 + 37 = 61", "hi": "24 + 37 = 61" }
+            },
+            {
+              "id": "math_add_q5",
+              "difficulty": 3,
+              "text": { "en": "What is 145 + 238?", "hi": "145 + 238 क्या है?" },
+              "options": ["381", "383", "385", "387"],
+              "correctIndex": 1,
+              "explanation": { "en": "145 + 238 = 383", "hi": "145 + 238 = 383" }
+            }
+          ]
+        },
+        {
+          "id": "math_subtraction",
+          "name": { "en": "Subtraction", "hi": "घटाव" },
+          "difficulty": 1,
+          "audioRef": "audio/math_subtraction_en.opus",
+          "illustrationRef": "images/math_subtraction.webp",
+          "lessonText": {
+            "en": "Subtraction means taking one number away from another.",
+            "hi": "घटाव का अर्थ है एक संख्या में से दूसरी संख्या को कम करना।"
+          },
+          "questions": [
+            {
+              "id": "math_sub_q1",
+              "difficulty": 1,
+              "text": { "en": "What is 9 - 3?", "hi": "9 - 3 क्या है?" },
+              "options": ["4", "5", "6", "7"],
+              "correctIndex": 2,
+              "explanation": { "en": "9 - 3 = 6", "hi": "9 - 3 = 6" }
+            },
+            {
+              "id": "math_sub_q2",
+              "difficulty": 1,
+              "text": { "en": "What is 10 - 4?", "hi": "10 - 4 क्या है?" },
+              "options": ["5", "6", "7", "8"],
+              "correctIndex": 1,
+              "explanation": { "en": "10 - 4 = 6", "hi": "10 - 4 = 6" }
+            },
+            {
+              "id": "math_sub_q3",
+              "difficulty": 2,
+              "text": { "en": "What is 35 - 17?", "hi": "35 - 17 क्या है?" },
+              "options": ["16", "17", "18", "19"],
+              "correctIndex": 2,
+              "explanation": { "en": "35 - 17 = 18", "hi": "35 - 17 = 18" }
+            },
+            {
+              "id": "math_sub_q4",
+              "difficulty": 2,
+              "text": { "en": "What is 50 - 23?", "hi": "50 - 23 क्या है?" },
+              "options": ["25", "26", "27", "28"],
+              "correctIndex": 2,
+              "explanation": { "en": "50 - 23 = 27", "hi": "50 - 23 = 27" }
+            },
+            {
+              "id": "math_sub_q5",
+              "difficulty": 3,
+              "text": { "en": "What is 200 - 147?", "hi": "200 - 147 क्या है?" },
+              "options": ["51", "52", "53", "54"],
+              "correctIndex": 2,
+              "explanation": { "en": "200 - 147 = 53", "hi": "200 - 147 = 53" }
+            }
+          ]
+        },
+        {
+          "id": "math_multiplication",
+          "name": { "en": "Multiplication", "hi": "गुणा" },
+          "difficulty": 2,
+          "audioRef": "audio/math_multiplication_en.opus",
+          "illustrationRef": "images/math_multiplication.webp",
+          "lessonText": {
+            "en": "Multiplication is repeated addition. 3 × 4 means adding 3 four times.",
+            "hi": "गुणा बार-बार जोड़ है। 3 × 4 का अर्थ है 3 को चार बार जोड़ना।"
+          },
+          "questions": [
+            {
+              "id": "math_mul_q1",
+              "difficulty": 1,
+              "text": { "en": "What is 3 × 4?", "hi": "3 × 4 क्या है?" },
+              "options": ["10", "11", "12", "13"],
+              "correctIndex": 2,
+              "explanation": { "en": "3 × 4 = 12", "hi": "3 × 4 = 12" }
+            },
+            {
+              "id": "math_mul_q2",
+              "difficulty": 1,
+              "text": { "en": "What is 5 × 6?", "hi": "5 × 6 क्या है?" },
+              "options": ["28", "30", "32", "34"],
+              "correctIndex": 1,
+              "explanation": { "en": "5 × 6 = 30", "hi": "5 × 6 = 30" }
+            },
+            {
+              "id": "math_mul_q3",
+              "difficulty": 2,
+              "text": { "en": "What is 7 × 8?", "hi": "7 × 8 क्या है?" },
+              "options": ["54", "56", "58", "60"],
+              "correctIndex": 1,
+              "explanation": { "en": "7 × 8 = 56", "hi": "7 × 8 = 56" }
+            },
+            {
+              "id": "math_mul_q4",
+              "difficulty": 2,
+              "text": { "en": "What is 12 × 9?", "hi": "12 × 9 क्या है?" },
+              "options": ["106", "108", "110", "112"],
+              "correctIndex": 1,
+              "explanation": { "en": "12 × 9 = 108", "hi": "12 × 9 = 108" }
+            },
+            {
+              "id": "math_mul_q5",
+              "difficulty": 3,
+              "text": { "en": "What is 15 × 14?", "hi": "15 × 14 क्या है?" },
+              "options": ["200", "210", "220", "230"],
+              "correctIndex": 1,
+              "explanation": { "en": "15 × 14 = 210", "hi": "15 × 14 = 210" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "science",
+      "name": { "en": "Science", "hi": "विज्ञान" },
+      "icon": "science_icon",
+      "topics": [
+        {
+          "id": "science_plants",
+          "name": { "en": "Plants", "hi": "पौधे" },
+          "difficulty": 1,
+          "audioRef": "audio/science_plants_en.opus",
+          "illustrationRef": "images/science_plants.webp",
+          "lessonText": {
+            "en": "Plants make their own food using sunlight, water, and air. This process is called photosynthesis.",
+            "hi": "पौधे सूर्य के प्रकाश, पानी और हवा का उपयोग करके अपना भोजन स्वयं बनाते हैं। इस प्रक्रिया को प्रकाश संश्लेषण कहते हैं।"
+          },
+          "questions": [
+            {
+              "id": "sci_plants_q1",
+              "difficulty": 1,
+              "text": { "en": "What do plants use to make food?", "hi": "पौधे भोजन बनाने के लिए क्या उपयोग करते हैं?" },
+              "options": ["Moonlight", "Sunlight", "Fire", "Wind"],
+              "correctIndex": 1,
+              "explanation": { "en": "Plants use sunlight, water and air to make food.", "hi": "पौधे सूर्य के प्रकाश, पानी और हवा का उपयोग करते हैं।" }
+            },
+            {
+              "id": "sci_plants_q2",
+              "difficulty": 1,
+              "text": { "en": "What is the green part of a plant called?", "hi": "पौधे के हरे भाग को क्या कहते हैं?" },
+              "options": ["Root", "Stem", "Leaf", "Flower"],
+              "correctIndex": 2,
+              "explanation": { "en": "The leaf is the green part that captures sunlight.", "hi": "पत्ती हरा भाग है जो सूर्य के प्रकाश को ग्रहण करती है।" }
+            },
+            {
+              "id": "sci_plants_q3",
+              "difficulty": 1,
+              "text": { "en": "What process do plants use to make food?", "hi": "पौधे भोजन बनाने के लिए किस प्रक्रिया का उपयोग करते हैं?" },
+              "options": ["Respiration", "Digestion", "Photosynthesis", "Evaporation"],
+              "correctIndex": 2,
+              "explanation": { "en": "Photosynthesis is the process plants use to make food.", "hi": "प्रकाश संश्लेषण वह प्रक्रिया है जिसे पौधे भोजन बनाने के लिए उपयोग करते हैं।" }
+            },
+            {
+              "id": "sci_plants_q4",
+              "difficulty": 2,
+              "text": { "en": "Which part of the plant absorbs water from the soil?", "hi": "पौधे का कौन सा भाग मिट्टी से पानी अवशोषित करता है?" },
+              "options": ["Leaf", "Stem", "Root", "Flower"],
+              "correctIndex": 2,
+              "explanation": { "en": "Roots absorb water and minerals from the soil.", "hi": "जड़ें मिट्टी से पानी और खनिज अवशोषित करती हैं।" }
+            },
+            {
+              "id": "sci_plants_q5",
+              "difficulty": 2,
+              "text": { "en": "What gas do plants release during photosynthesis?", "hi": "प्रकाश संश्लेषण के दौरान पौधे कौन सी गैस छोड़ते हैं?" },
+              "options": ["Carbon dioxide", "Nitrogen", "Oxygen", "Hydrogen"],
+              "correctIndex": 2,
+              "explanation": { "en": "Plants release oxygen as a byproduct of photosynthesis.", "hi": "पौधे प्रकाश संश्लेषण के उपोत्पाद के रूप में ऑक्सीजन छोड़ते हैं।" }
+            }
+          ]
+        },
+        {
+          "id": "science_water",
+          "name": { "en": "Water Cycle", "hi": "जल चक्र" },
+          "difficulty": 1,
+          "audioRef": "audio/science_water_en.opus",
+          "illustrationRef": "images/science_water.webp",
+          "lessonText": {
+            "en": "Water moves through evaporation, condensation, and precipitation in a continuous cycle.",
+            "hi": "पानी वाष्पीकरण, संघनन और वर्षण के माध्यम से एक सतत चक्र में चलता है।"
+          },
+          "questions": [
+            {
+              "id": "sci_water_q1",
+              "difficulty": 1,
+              "text": { "en": "What happens when water is heated by the sun?", "hi": "जब सूर्य से पानी गर्म होता है तो क्या होता है?" },
+              "options": ["It freezes", "It evaporates", "It sinks", "It grows"],
+              "correctIndex": 1,
+              "explanation": { "en": "Water evaporates and turns into vapour when heated.", "hi": "गर्म होने पर पानी वाष्पित होकर भाप बन जाता है।" }
+            },
+            {
+              "id": "sci_water_q2",
+              "difficulty": 1,
+              "text": { "en": "What do clouds form from?", "hi": "बादल किससे बनते हैं?" },
+              "options": ["Dust", "Water vapour", "Smoke", "Air"],
+              "correctIndex": 1,
+              "explanation": { "en": "Clouds form when water vapour condenses in the air.", "hi": "जब हवा में जलवाष्प संघनित होती है तो बादल बनते हैं।" }
+            },
+            {
+              "id": "sci_water_q3",
+              "difficulty": 2,
+              "text": { "en": "What is the process of water vapour turning into liquid called?", "hi": "जलवाष्प के तरल में बदलने की प्रक्रिया को क्या कहते हैं?" },
+              "options": ["Evaporation", "Condensation", "Precipitation", "Absorption"],
+              "correctIndex": 1,
+              "explanation": { "en": "Condensation is when water vapour cools and turns to liquid.", "hi": "संघनन वह प्रक्रिया है जब जलवाष्प ठंडी होकर तरल बन जाती है।" }
+            },
+            {
+              "id": "sci_water_q4",
+              "difficulty": 2,
+              "text": { "en": "What is rain called in the water cycle?", "hi": "जल चक्र में वर्षा को क्या कहते हैं?" },
+              "options": ["Evaporation", "Condensation", "Precipitation", "Transpiration"],
+              "correctIndex": 2,
+              "explanation": { "en": "Precipitation is the water that falls from clouds as rain or snow.", "hi": "वर्षण वह पानी है जो बादलों से बारिश या बर्फ के रूप में गिरता है।" }
+            },
+            {
+              "id": "sci_water_q5",
+              "difficulty": 3,
+              "text": { "en": "Which of these is NOT part of the water cycle?", "hi": "इनमें से कौन जल चक्र का हिस्सा नहीं है?" },
+              "options": ["Evaporation", "Condensation", "Photosynthesis", "Precipitation"],
+              "correctIndex": 2,
+              "explanation": { "en": "Photosynthesis is part of the plant food-making process, not the water cycle.", "hi": "प्रकाश संश्लेषण पौधे के भोजन बनाने की प्रक्रिया का हिस्सा है, जल चक्र का नहीं।" }
+            }
+          ]
+        },
+        {
+          "id": "science_animals",
+          "name": { "en": "Animals", "hi": "जानवर" },
+          "difficulty": 1,
+          "audioRef": "audio/science_animals_en.opus",
+          "illustrationRef": "images/science_animals.webp",
+          "lessonText": {
+            "en": "Animals are living beings that eat food, breathe air, and move around. They can be domestic or wild.",
+            "hi": "जानवर जीवित प्राणी हैं जो भोजन खाते हैं, हवा में सांस लेते हैं और घूमते हैं। वे पालतू या जंगली हो सकते हैं।"
+          },
+          "questions": [
+            {
+              "id": "sci_animals_q1",
+              "difficulty": 1,
+              "text": { "en": "Which of these is a domestic animal?", "hi": "इनमें से कौन पालतू जानवर है?" },
+              "options": ["Lion", "Tiger", "Cow", "Elephant"],
+              "correctIndex": 2,
+              "explanation": { "en": "Cows are domestic animals kept at home.", "hi": "गाय पालतू जानवर हैं जिन्हें घर में रखा जाता है।" }
+            },
+            {
+              "id": "sci_animals_q2",
+              "difficulty": 1,
+              "text": { "en": "How do fish breathe?", "hi": "मछली कैसे सांस लेती है?" },
+              "options": ["With lungs", "With gills", "Through skin", "Through nose"],
+              "correctIndex": 1,
+              "explanation": { "en": "Fish breathe through gills, which extract oxygen from water.", "hi": "मछली गलफड़ों से सांस लेती है, जो पानी से ऑक्सीजन निकालते हैं।" }
+            },
+            {
+              "id": "sci_animals_q3",
+              "difficulty": 1,
+              "text": { "en": "Which animal gives us milk?", "hi": "कौन सा जानवर हमें दूध देता है?" },
+              "options": ["Hen", "Dog", "Cow", "Cat"],
+              "correctIndex": 2,
+              "explanation": { "en": "Cows give us milk.", "hi": "गाय हमें दूध देती है।" }
+            },
+            {
+              "id": "sci_animals_q4",
+              "difficulty": 2,
+              "text": { "en": "What do herbivores eat?", "hi": "शाकाहारी क्या खाते हैं?" },
+              "options": ["Only meat", "Only plants", "Both meat and plants", "Insects only"],
+              "correctIndex": 1,
+              "explanation": { "en": "Herbivores eat only plants.", "hi": "शाकाहारी केवल पौधे खाते हैं।" }
+            },
+            {
+              "id": "sci_animals_q5",
+              "difficulty": 2,
+              "text": { "en": "Which of these animals is a reptile?", "hi": "इनमें से कौन सा जानवर सरीसृप है?" },
+              "options": ["Frog", "Eagle", "Snake", "Whale"],
+              "correctIndex": 2,
+              "explanation": { "en": "Snakes are reptiles — cold-blooded animals with scales.", "hi": "सांप सरीसृप हैं — ठंडे खून वाले जानवर जिनके शल्क होते हैं।" }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
