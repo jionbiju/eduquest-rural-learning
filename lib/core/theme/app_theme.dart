@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
-import 'app_text_styles.dart';
 
 /// Builds the global [ThemeData] for EduQuest.
 abstract final class AppTheme {
@@ -24,23 +24,24 @@ abstract final class AppTheme {
       outline: AppColors.grey200,
     );
 
+    final baseTextTheme = GoogleFonts.nunitoTextTheme();
+
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      fontFamily: 'Nunito',
+      textTheme: baseTextTheme,
 
       // ── AppBar ─────────────────────────────────────────────────────────
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        systemOverlayStyle: SystemUiOverlayStyle(
+        systemOverlayStyle: const SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.light,
         ),
-        titleTextStyle: TextStyle(
-          fontFamily: 'Nunito',
+        titleTextStyle: GoogleFonts.nunito(
           fontSize: 18,
           fontWeight: FontWeight.w700,
           color: Colors.white,
@@ -67,7 +68,10 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
-          textStyle: AppTextStyles.labelLarge.copyWith(fontSize: 16),
+          textStyle: GoogleFonts.nunito(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
           elevation: 2,
         ),
       ),
@@ -81,7 +85,10 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
-          textStyle: AppTextStyles.labelLarge.copyWith(fontSize: 16),
+          textStyle: GoogleFonts.nunito(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
 
@@ -89,7 +96,10 @@ abstract final class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
-          textStyle: AppTextStyles.labelLarge,
+          textStyle: GoogleFonts.nunito(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
 
@@ -97,7 +107,8 @@ abstract final class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.grey50,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.grey200),
@@ -114,8 +125,15 @@ abstract final class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.error),
         ),
-        hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey400),
-        labelStyle: AppTextStyles.bodyMedium,
+        hintStyle: GoogleFonts.nunito(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.grey400,
+        ),
+        labelStyle: GoogleFonts.nunito(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
       ),
 
       // ── BottomNavBar ───────────────────────────────────────────────────
@@ -123,10 +141,15 @@ abstract final class AppTheme {
         backgroundColor: Colors.white,
         indicatorColor: AppColors.surfaceVariant,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final base = GoogleFonts.nunito(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.4,
+          );
           if (states.contains(WidgetState.selected)) {
-            return AppTextStyles.labelSmall.copyWith(color: AppColors.primary);
+            return base.copyWith(color: AppColors.primary);
           }
-          return AppTextStyles.labelSmall;
+          return base.copyWith(color: AppColors.grey600);
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -147,21 +170,6 @@ abstract final class AppTheme {
 
       // ── Scaffold ───────────────────────────────────────────────────────
       scaffoldBackgroundColor: AppColors.background,
-
-      // ── Text ──────────────────────────────────────────────────────────
-      textTheme: const TextTheme(
-        displayLarge: AppTextStyles.displayLarge,
-        displayMedium: AppTextStyles.displayMedium,
-        headlineLarge: AppTextStyles.headlineLarge,
-        headlineMedium: AppTextStyles.headlineMedium,
-        headlineSmall: AppTextStyles.headlineSmall,
-        bodyLarge: AppTextStyles.bodyLarge,
-        bodyMedium: AppTextStyles.bodyMedium,
-        bodySmall: AppTextStyles.bodySmall,
-        labelLarge: AppTextStyles.labelLarge,
-        labelMedium: AppTextStyles.labelMedium,
-        labelSmall: AppTextStyles.labelSmall,
-      ),
     );
   }
 }

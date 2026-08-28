@@ -1,116 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
-/// Centralised text style definitions using the Nunito font family.
+/// Centralised text style definitions using Nunito via google_fonts.
 abstract final class AppTextStyles {
-  static const String _fontFamily = 'Nunito';
-
   // ── Display ───────────────────────────────────────────────────────────────
-  static const TextStyle displayLarge = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 32,
-    fontWeight: FontWeight.w800,
-    color: AppColors.onBackground,
-    height: 1.2,
-  );
+  static TextStyle get displayLarge => GoogleFonts.nunito(
+        fontSize: 32,
+        fontWeight: FontWeight.w800,
+        color: AppColors.onBackground,
+        height: 1.2,
+      );
 
-  static const TextStyle displayMedium = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 26,
-    fontWeight: FontWeight.w800,
-    color: AppColors.onBackground,
-    height: 1.25,
-  );
+  static TextStyle get displayMedium => GoogleFonts.nunito(
+        fontSize: 26,
+        fontWeight: FontWeight.w800,
+        color: AppColors.onBackground,
+        height: 1.25,
+      );
 
   // ── Headline ──────────────────────────────────────────────────────────────
-  static const TextStyle headlineLarge = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 22,
-    fontWeight: FontWeight.w700,
-    color: AppColors.onBackground,
-    height: 1.3,
-  );
+  static TextStyle get headlineLarge => GoogleFonts.nunito(
+        fontSize: 22,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onBackground,
+        height: 1.3,
+      );
 
-  static const TextStyle headlineMedium = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 18,
-    fontWeight: FontWeight.w700,
-    color: AppColors.onBackground,
-    height: 1.3,
-  );
+  static TextStyle get headlineMedium => GoogleFonts.nunito(
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onBackground,
+        height: 1.3,
+      );
 
-  static const TextStyle headlineSmall = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 16,
-    fontWeight: FontWeight.w700,
-    color: AppColors.onBackground,
-    height: 1.35,
-  );
+  static TextStyle get headlineSmall => GoogleFonts.nunito(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onBackground,
+        height: 1.35,
+      );
 
   // ── Body ──────────────────────────────────────────────────────────────────
-  static const TextStyle bodyLarge = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 16,
-    fontWeight: FontWeight.w600,
-    color: AppColors.grey800,
-    height: 1.5,
-  );
+  static TextStyle get bodyLarge => GoogleFonts.nunito(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: AppColors.grey800,
+        height: 1.5,
+      );
 
-  static const TextStyle bodyMedium = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: AppColors.grey800,
-    height: 1.5,
-  );
+  static TextStyle get bodyMedium => GoogleFonts.nunito(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: AppColors.grey800,
+        height: 1.5,
+      );
 
-  static const TextStyle bodySmall = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 12,
-    fontWeight: FontWeight.w600,
-    color: AppColors.grey600,
-    height: 1.5,
-  );
+  static TextStyle get bodySmall => GoogleFonts.nunito(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppColors.grey600,
+        height: 1.5,
+      );
 
   // ── Label ─────────────────────────────────────────────────────────────────
-  static const TextStyle labelLarge = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 14,
-    fontWeight: FontWeight.w700,
-    color: AppColors.onBackground,
-    letterSpacing: 0.5,
-  );
+  static TextStyle get labelLarge => GoogleFonts.nunito(
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+        color: AppColors.onBackground,
+        letterSpacing: 0.5,
+      );
 
-  static const TextStyle labelMedium = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 12,
-    fontWeight: FontWeight.w700,
-    color: AppColors.grey600,
-    letterSpacing: 0.4,
-  );
+  static TextStyle get labelMedium => GoogleFonts.nunito(
+        fontSize: 12,
+        fontWeight: FontWeight.w700,
+        color: AppColors.grey600,
+        letterSpacing: 0.4,
+      );
 
-  static const TextStyle labelSmall = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 10,
-    fontWeight: FontWeight.w700,
-    color: AppColors.grey600,
-    letterSpacing: 0.4,
-  );
+  static TextStyle get labelSmall => GoogleFonts.nunito(
+        fontSize: 10,
+        fontWeight: FontWeight.w700,
+        color: AppColors.grey600,
+        letterSpacing: 0.4,
+      );
 
   // ── Special ───────────────────────────────────────────────────────────────
-  static const TextStyle xpCounter = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 20,
-    fontWeight: FontWeight.w800,
-    color: AppColors.xpGold,
-    height: 1,
-  );
+  static TextStyle get xpCounter => GoogleFonts.nunito(
+        fontSize: 20,
+        fontWeight: FontWeight.w800,
+        color: AppColors.xpGold,
+        height: 1,
+      );
 
-  static const TextStyle streakCounter = TextStyle(
-    fontFamily: _fontFamily,
-    fontSize: 20,
-    fontWeight: FontWeight.w800,
-    color: AppColors.streakOrange,
-    height: 1,
-  );
+  static TextStyle get streakCounter => GoogleFonts.nunito(
+        fontSize: 20,
+        fontWeight: FontWeight.w800,
+        color: AppColors.streakOrange,
+        height: 1,
+      );
 }
