@@ -5,8 +5,7 @@ abstract final class AppRoutes {
   static const String splash = '/';
   static const String login = '/login';
   static const String home = '/home';
-  static const String lesson = '/lesson';
-  static const String quiz = '/quiz';
+  // lesson, quiz, quiz_result are nested under home — use goNamed() with params.
   static const String leaderboard = '/leaderboard';
   static const String settings = '/settings';
 }
