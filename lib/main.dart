@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/router/app_router.dart';
+import 'core/services/firebase_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/sync/data/repositories/sync_queue_repository.dart';
 import 'features/sync/providers/sync_provider.dart';
@@ -20,6 +21,9 @@ Future<void> main() async {
     Hive.openBox<String>(AppConstants.hiveSyncQueueBox),
     Hive.openBox<String>(AppConstants.hiveSettingsBox),
   ]);
+
+  // Initialise Firebase (fails gracefully if credentials are placeholders).
+  await FirebaseService.init();
 
   final syncRepo = SyncQueueRepository();
   await syncRepo.init();
