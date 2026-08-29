@@ -10,6 +10,7 @@ import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/leaderboard/presentation/screens/leaderboard_screen.dart';
 import '../../features/lessons/presentation/screens/lesson_screen.dart';
+import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/quiz/presentation/screens/quiz_result_screen.dart';
 import '../../features/quiz/presentation/screens/quiz_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
@@ -108,17 +109,22 @@ final appRouter = GoRouter(
                 ),
               ],
             ),
+            GoRoute(
+              path: 'leaderboard',
+              name: 'leaderboard',
+              builder: (context, state) => const LeaderboardScreen(),
+            ),
+            GoRoute(
+              path: 'settings',
+              name: 'settings',
+              builder: (context, state) => const SettingsScreen(),
+            ),
+            GoRoute(
+              path: 'profile',
+              name: 'profile',
+              builder: (context, state) => const ProfileScreen(),
+            ),
           ],
-        ),
-        GoRoute(
-          path: AppRoutes.leaderboard,
-          name: 'leaderboard',
-          builder: (context, state) => const LeaderboardScreen(),
-        ),
-        GoRoute(
-          path: AppRoutes.settings,
-          name: 'settings',
-          builder: (context, state) => const SettingsScreen(),
         ),
       ],
     ),
