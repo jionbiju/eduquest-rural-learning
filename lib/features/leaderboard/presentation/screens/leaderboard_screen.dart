@@ -247,32 +247,52 @@ class _MyRankBanner extends StatelessWidget {
       decoration: BoxDecoration(
         color: isTopThree
             ? AppColors.xpGold.withValues(alpha: 0.12)
-            : AppColors.secondary.withValues(alpha: 0.1),
+            : AppColors.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isTopThree ? AppColors.xpGold : AppColors.secondary,
+          color: isTopThree ? AppColors.xpGold : AppColors.primaryLight,
           width: 1.5,
         ),
       ),
       child: Row(
         children: [
-          Text(rankEmoji, style: const TextStyle(fontSize: 26)),
+          Text(rankEmoji, style: const TextStyle(fontSize: 28)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Your Rank',
-                  style: AppTextStyles.labelMedium,
+                  'Your Rank & Total XP',
+                  style: AppTextStyles.labelMedium.copyWith(color: AppColors.grey600),
                 ),
-                Text(
-                  '#${myEntry.rank} · ${myEntry.xp} XP',
-                  style: AppTextStyles.headlineSmall.copyWith(
-                    color: isTopThree
-                        ? AppColors.secondaryDark
-                        : AppColors.primary,
-                  ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Text(
+                      'Rank #${myEntry.rank}',
+                      style: AppTextStyles.headlineSmall.copyWith(
+                        color: AppColors.primaryDark,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.xpGold.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.xpGold),
+                      ),
+                      child: Text(
+                        '⭐ ${myEntry.xp} XP',
+                        style: AppTextStyles.labelMedium.copyWith(
+                          color: const Color(0xFFB45309),
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -290,6 +310,7 @@ class _MyRankBanner extends StatelessWidget {
               'Lvl ${myEntry.level}',
               style: AppTextStyles.labelLarge.copyWith(
                 color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),

@@ -333,6 +333,144 @@
           ]
         }
       ]
+    },
+    {
+      "id": "english",
+      "name": { "en": "English", "hi": "अंग्रेज़ी" },
+      "icon": "english_icon",
+      "topics": [
+        {
+          "id": "english_nouns",
+          "name": { "en": "Nouns", "hi": "संज्ञा" },
+          "difficulty": 1,
+          "audioRef": "audio/english_nouns_en.opus",
+          "illustrationRef": "images/english_nouns.webp",
+          "lessonText": {
+            "en": "A noun is a word that names a person, place, thing, or idea. Examples include Rahul, Delhi, apple, and happiness.",
+            "hi": "संज्ञा वह शब्द है जो किसी व्यक्ति, स्थान, वस्तु या विचार का नाम बताता है। जैसे राहुल, दिल्ली, सेब और खुशी।"
+          },
+          "questions": [
+            {
+              "id": "eng_nouns_q1",
+              "difficulty": 1,
+              "text": { "en": "Which of these words is a noun?", "hi": "इनमें से कौन सा शब्द संज्ञा है?" },
+              "options": ["Run", "Apple", "Beautiful", "Quickly"],
+              "correctIndex": 1,
+              "explanation": { "en": "'Apple' is a fruit, which is a naming word (noun).", "hi": "'सेब' एक फल है, जो एक नामकरण शब्द (संज्ञा) है।" }
+            },
+            {
+              "id": "eng_nouns_q2",
+              "difficulty": 1,
+              "text": { "en": "Identify the noun in: 'The dog barked.'", "hi": "'कुत्ता भौंका' में संज्ञा पहचानें।" },
+              "options": ["The", "dog", "barked", "loudly"],
+              "correctIndex": 1,
+              "explanation": { "en": "'dog' is an animal name, which is a noun.", "hi": "'dog' एक जानवर का नाम है, जो एक संज्ञा है।" }
+            },
+            {
+              "id": "eng_nouns_q3",
+              "difficulty": 2,
+              "text": { "en": "Which of the following is a proper noun?", "hi": "निम्नलिखित में से कौन सी व्यक्तिवाचक संज्ञा है?" },
+              "options": ["boy", "city", "Delhi", "river"],
+              "correctIndex": 2,
+              "explanation": { "en": "'Delhi' is the specific name of a city, making it a proper noun.", "hi": "'Delhi' एक विशिष्ट शहर का नाम है, इसलिए यह व्यक्तिवाचक संज्ञा है।" }
+            }
+          ]
+        },
+        {
+          "id": "english_verbs",
+          "name": { "en": "Verbs", "hi": "क्रिया" },
+          "difficulty": 1,
+          "audioRef": "audio/english_verbs_en.opus",
+          "illustrationRef": "images/english_verbs.webp",
+          "lessonText": {
+            "en": "A verb is an action word that tells what someone or something is doing. Examples include run, jump, read, and sleep.",
+            "hi": "क्रिया एक कार्य शब्द है जो बताता है कि कोई व्यक्ति या वस्तु क्या कर रही है। जैसे दौड़ना, कूदना, पढ़ना और सोना।"
+          },
+          "questions": [
+            {
+              "id": "eng_verbs_q1",
+              "difficulty": 1,
+              "text": { "en": "Which of these is an action word (verb)?", "hi": "इनमें से कौन सा कार्य शब्द (क्रिया) है?" },
+              "options": ["Happy", "Dog", "Jump", "Slowly"],
+              "correctIndex": 2,
+              "explanation": { "en": "'Jump' is an action, which is a verb.", "hi": "'कूदना' (Jump) एक क्रिया है।" }
+            },
+            {
+              "id": "eng_verbs_q2",
+              "difficulty": 2,
+              "text": { "en": "Identify the verb in: 'She is reading a book.'", "hi": "'वह किताब पढ़ रही है' में क्रिया पहचानें।" },
+              "options": ["She", "reading", "a", "book"],
+              "correctIndex": 1,
+              "explanation": { "en": "'reading' is the action being performed.", "hi": "'पढ़ना' (reading) किया जा रहा कार्य है।" }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "history",
+      "name": { "en": "History", "hi": "इतिहास" },
+      "icon": "history_icon",
+      "topics": [
+        {
+          "id": "history_ancient",
+          "name": { "en": "Ancient India", "hi": "प्राचीन भारत" },
+          "difficulty": 1,
+          "audioRef": "audio/history_ancient_en.opus",
+          "illustrationRef": "images/history_ancient.webp",
+          "lessonText": {
+            "en": "Ancient Indian history starts with the Indus Valley Civilization. One of its most famous dynasties was the Maurya Dynasty, ruled by Emperor Ashoka.",
+            "hi": "प्राचीन भारतीय इतिहास सिंधु घाटी सभ्यता से शुरू होता है। इसके सबसे प्रसिद्ध राजवंशों में से एक मौर्य राजवंश था, जिस पर सम्राट अशोक ने शासन किया था।"
+          },
+          "questions": [
+            {
+              "id": "hist_ancient_q1",
+              "difficulty": 1,
+              "text": { "en": "Which river valley hosted the Harappan civilization?", "hi": "हड़प्पा सभ्यता किस नदी घाटी में स्थित थी?" },
+              "options": ["Ganga", "Indus", "Yamuna", "Narmada"],
+              "correctIndex": 1,
+              "explanation": { "en": "The Harappan civilization developed near the Indus River.", "hi": "हड़प्पा सभ्यता सिंधु नदी के पास विकसित हुई।" }
+            },
+            {
+              "id": "hist_ancient_q2",
+              "difficulty": 2,
+              "text": { "en": "Who was a famous emperor of the Maurya Dynasty?", "hi": "मौर्य राजवंश के प्रसिद्ध सम्राट कौन थे?" },
+              "options": ["Akbar", "Ashoka", "Shivaji", "Prithviraj"],
+              "correctIndex": 1,
+              "explanation": { "en": "Emperor Ashoka was one of the greatest rulers of the Maurya Dynasty.", "hi": "सम्राट अशोक मौर्य राजवंश के महानतम शासकों में से एक थे।" }
+            }
+          ]
+        },
+        {
+          "id": "history_independence",
+          "name": { "en": "Independence", "hi": "स्वतंत्रता आंदोलन" },
+          "difficulty": 1,
+          "audioRef": "audio/history_independence_en.opus",
+          "illustrationRef": "images/history_independence.webp",
+          "lessonText": {
+            "en": "India gained independence from British rule on August 15, 1947, after a long struggle led by leaders like Mahatma Gandhi.",
+            "hi": "महात्मा गांधी जैसे नेताओं के नेतृत्व में लंबे संघर्ष के बाद भारत को 15 अगस्त, 1947 को ब्रिटिश शासन से स्वतंत्रता मिली।"
+          },
+          "questions": [
+            {
+              "id": "hist_ind_q1",
+              "difficulty": 1,
+              "text": { "en": "Who is known as the Father of the Nation in India?", "hi": "भारत में राष्ट्रपिता के रूप में किसे जाना जाता है?" },
+              "options": ["Jawaharlal Nehru", "Subhas Chandra Bose", "Mahatma Gandhi", "Bhagat Singh"],
+              "correctIndex": 2,
+              "explanation": { "en": "Mahatma Gandhi is affectionately called the Father of the Nation.", "hi": "महात्मा गांधी को स्नेहपूर्वक राष्ट्रपिता कहा जाता है।" }
+            },
+            {
+              "id": "hist_ind_q2",
+              "difficulty": 1,
+              "text": { "en": "In which year did India gain independence?", "hi": "भारत को किस वर्ष स्वतंत्रता मिली?" },
+              "options": ["1945", "1947", "1950", "1952"],
+              "correctIndex": 1,
+              "explanation": { "en": "India gained independence on August 15, 1947.", "hi": "भारत को 15 अगस्त, 1947 को स्वतंत्रता मिली।" }
+            }
+          ]
+        }
+      ]
     }
   ]
 }

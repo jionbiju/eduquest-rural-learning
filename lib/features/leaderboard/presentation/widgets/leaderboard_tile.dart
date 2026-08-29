@@ -30,6 +30,13 @@ class LeaderboardTile extends StatelessWidget {
           color: isCurrentUser ? AppColors.primary : AppColors.grey200,
           width: isCurrentUser ? 2 : 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -39,7 +46,8 @@ class LeaderboardTile extends StatelessWidget {
             child: Text(
               '#${entry.rank}',
               style: AppTextStyles.labelLarge.copyWith(
-                color: AppColors.grey600,
+                color: isCurrentUser ? AppColors.primary : AppColors.grey600,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -58,12 +66,16 @@ class LeaderboardTile extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      entry.name,
-                      style: AppTextStyles.bodyLarge.copyWith(
-                        color: isCurrentUser
-                            ? AppColors.primary
-                            : AppColors.grey800,
+                    Flexible(
+                      child: Text(
+                        entry.name,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          color: isCurrentUser
+                              ? AppColors.primaryDark
+                              : AppColors.grey800,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (isCurrentUser) ...[
@@ -81,6 +93,7 @@ class LeaderboardTile extends StatelessWidget {
                           'You',
                           style: AppTextStyles.labelSmall.copyWith(
                             color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -99,15 +112,37 @@ class LeaderboardTile extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                '${entry.xp} XP',
-                style: AppTextStyles.labelLarge.copyWith(
-                  color: AppColors.xpGold,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.xpGold.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.xpGold.withValues(alpha: 0.5),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('⭐', style: TextStyle(fontSize: 11)),
+                    const SizedBox(width: 3),
+                    Text(
+                      '${entry.xp} XP',
+                      style: AppTextStyles.labelMedium.copyWith(
+                        color: const Color(0xFFB45309), // Amber-800 for high visibility
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(height: 4),
               Text(
                 'Lvl ${entry.level}',
-                style: AppTextStyles.bodySmall,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.grey600,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
