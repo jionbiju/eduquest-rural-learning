@@ -10,7 +10,10 @@ import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/leaderboard/presentation/screens/leaderboard_screen.dart';
 import '../../features/lessons/presentation/screens/lesson_screen.dart';
+import '../../features/lessons/presentation/screens/lessons_list_screen.dart';
+import '../../features/lessons/presentation/screens/subject_topics_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/quiz/presentation/screens/quiz_hub_screen.dart';
 import '../../features/quiz/presentation/screens/quiz_result_screen.dart';
 import '../../features/quiz/presentation/screens/quiz_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
@@ -108,6 +111,23 @@ final appRouter = GoRouter(
                   ],
                 ),
               ],
+            ),
+            GoRoute(
+              path: 'subject/:subjectId',
+              name: 'subject_topics',
+              builder: (context, state) => SubjectTopicsScreen(
+                subjectId: state.pathParameters['subjectId'] ?? '',
+              ),
+            ),
+            GoRoute(
+              path: 'lessons',
+              name: 'lessons',
+              builder: (context, state) => const LessonsListScreen(),
+            ),
+            GoRoute(
+              path: 'quiz_hub',
+              name: 'quiz_hub',
+              builder: (context, state) => const QuizHubScreen(),
             ),
             GoRoute(
               path: 'leaderboard',

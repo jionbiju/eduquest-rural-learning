@@ -14,7 +14,10 @@ class ShellScreen extends StatelessWidget {
     if (location.startsWith('/home/leaderboard')) return 3;
     if (location.startsWith('/home/settings')) return 4;
     if (location.startsWith('/home/profile')) return 4; // profile = settings tab
-    if (location.startsWith('/home/lesson')) return 1;
+    if (location.startsWith('/home/quiz_hub')) return 2;
+    if (location.startsWith('/home/lessons')) return 1;
+    if (location.startsWith('/home/subject')) return 1; // subject topics = lessons tab
+    if (location.startsWith('/home/lesson')) return 1;  // lesson detail = lessons tab
     return 0; // home
   }
 
@@ -32,11 +35,9 @@ class ShellScreen extends StatelessWidget {
             case 0:
               context.goNamed('home');
             case 1:
-              // Lessons tab — navigate home for now, lessons will be added later
-              context.goNamed('home');
+              context.goNamed('lessons');
             case 2:
-              // Quiz tab — navigate home for now
-              context.goNamed('home');
+              context.goNamed('quiz_hub');
             case 3:
               context.goNamed('leaderboard');
             case 4:

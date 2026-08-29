@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -24,11 +26,20 @@ class QuizNotifier extends StateNotifier<QuizState> {
     final topic = await _ref.read(topicByIdProvider(_topicId).future);
     if (topic == null) return;
 
-    // Start with difficulty-1 questions, adapt as student answers.
-    final sorted = List<QuestionModel>.from(topic.questions)
-      ..sort((a, b) => a.difficulty.compareTo(b.difficulty));
+    // Group questions by difficulty, shuffle each group, then combine.
+    final rng = Random();
+    final groups = <int, List<QuestionModel>>{};
+    for (final q in topic.questions) {
+      groups.putIfAbsent(q.difficulty, () => []).add(q);
+    }
+    final shuffled = <QuestionModel>[];
+    final sortedKeys = groups.keys.toList()..sort();
+    for (final key in sortedKeys) {
+      final group = groups[key]!..shuffle(rng);
+      shuffled.addAll(group);
+    }
 
-    state = QuizState(questions: sorted);
+    state = QuizState(questions: shuffled);
   }
 
   /// Called when the student taps an answer option.
@@ -92,6 +103,8 @@ class QuizNotifier extends StateNotifier<QuizState> {
   }
 
   void resetQuiz() {
+    // Reset all state fields first, then reload questions with new shuffle.
+    state = const QuizState(questions: []);
     _init();
   }
 
