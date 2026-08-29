@@ -6,6 +6,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/connectivity_banner.dart';
 import '../../../../core/widgets/xp_progress_bar.dart';
+import '../../../lessons/data/models/subject_model.dart';
+import '../../../lessons/data/repositories/bundle_repository.dart';
 import '../../providers/home_provider.dart';
 import '../widgets/daily_quest_banner.dart';
 import '../widgets/home_header.dart';
@@ -15,17 +17,37 @@ import '../widgets/subject_card.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  // Static subject data — will come from bundle provider later.
-  static const _subjects = [
-    _SubjectData('Mathematics', '🔢', AppColors.primary, 3, 'math_addition'),
-    _SubjectData('Science', '🔬', AppColors.success, 3, 'science_plants'),
-    _SubjectData('English', '📖', AppColors.secondary, 2, 'math_subtraction'),
-    _SubjectData('History', '🏛️', AppColors.badgePurple, 2, 'science_water'),
+  static const _subjectColors = [
+    AppColors.primary,
+    AppColors.success,
+    AppColors.secondary,
+    AppColors.badgePurple,
+    AppColors.xpGold,
+    AppColors.primary,
   ];
+
+  static const _subjectEmojis = <String, String>{
+    'math': '🔢',
+    'science': '🔬',
+    'english': '📖',
+    'history': '🏛️',
+    'geography': '🌍',
+  };
+
+  Color _colorForIndex(int i) =>
+      _subjectColors[i % _subjectColors.length];
+
+  String _emojiForSubject(SubjectModel subject) {
+    for (final entry in _subjectEmojis.entries) {
+      if (subject.id.startsWith(entry.key)) return entry.value;
+    }
+    return '📚';
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(studentProfileProvider);
+    final subjectsAsync = ref.watch(subjectsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -79,7 +101,7 @@ class HomeScreen extends ConsumerWidget {
                           style: AppTextStyles.headlineMedium,
                         ),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () => context.goNamed('lessons'),
                           child: const Text('See all'),
                         ),
                       ],
@@ -87,30 +109,44 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
 
-                // ── Subject grid ────────────────────────────────────────
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 14,
-                      mainAxisSpacing: 14,
-                      childAspectRatio: 1.05,
+                // ── Subject grid (from bundle) ───────────────────────────
+                subjectsAsync.when(
+                  loading: () => const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.all(32),
+                      child: Center(child: CircularProgressIndicator()),
                     ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final s = _subjects[index];
-                        return SubjectCard(
-                          title: s.title,
-                          emoji: s.emoji,
-                          color: s.color,
-                          topicsCount: s.topicsCount,
-                          onTap: () => context.goNamed('lesson',
-                              pathParameters: {'lessonId': s.topicId}),
-                        );
-                      },
-                      childCount: _subjects.length,
+                  ),
+                  error: (_, __) => const SliverToBoxAdapter(
+                    child: SizedBox.shrink(),
+                  ),
+                  data: (subjects) => SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 14,
+                        mainAxisSpacing: 14,
+                        childAspectRatio: 1.05,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final subject = subjects[index];
+                          final color = _colorForIndex(index);
+                          return SubjectCard(
+                            title: subject.localizedName('en'),
+                            emoji: _emojiForSubject(subject),
+                            color: color,
+                            topicsCount: subject.topics.length,
+                            onTap: () => context.goNamed(
+                              'subject_topics',
+                              pathParameters: {'subjectId': subject.id},
+                            ),
+                          );
+                        },
+                        childCount: subjects.length,
+                      ),
                     ),
                   ),
                 ),
@@ -126,14 +162,4 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
-}
-
-/// Simple data holder for subject grid items.
-class _SubjectData {
-  const _SubjectData(this.title, this.emoji, this.color, this.topicsCount, this.topicId);
-  final String title;
-  final String emoji;
-  final Color color;
-  final int topicsCount;
-  final String topicId;
 }

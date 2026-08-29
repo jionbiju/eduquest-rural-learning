@@ -23,16 +23,36 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
     with SingleTickerProviderStateMixin {
   bool _showXpPopup = false;
   int _lastXpGain = 0;
+  bool _initialized = false;
 
   static const _optionLabels = ['A', 'B', 'C', 'D'];
+
+  @override
+  void initState() {
+    super.initState();
+    // Reset (and shuffle) the quiz each time this screen is opened.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(quizProvider(widget.topicId).notifier).resetQuiz();
+        setState(() => _initialized = true);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final quizState = ref.watch(quizProvider(widget.topicId));
     final notifier = ref.read(quizProvider(widget.topicId).notifier);
 
-    // Navigate to results when quiz is complete.
-    if (quizState.isCompleted) {
+    // Show loading until initialized and questions are loaded.
+    if (!_initialized || quizState.questions.isEmpty) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Navigate to results when quiz is complete (but NOT on an empty/reset state).
+    if (quizState.isCompleted && quizState.questions.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           context.goNamed(
@@ -47,12 +67,6 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
           );
         }
       });
-    }
-
-    if (quizState.questions.isEmpty) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
     }
 
     final question = quizState.currentQuestion;
