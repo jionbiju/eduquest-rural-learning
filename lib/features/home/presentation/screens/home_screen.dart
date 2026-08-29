@@ -8,6 +8,8 @@ import '../../../../core/widgets/connectivity_banner.dart';
 import '../../../../core/widgets/xp_progress_bar.dart';
 import '../../../lessons/data/models/subject_model.dart';
 import '../../../lessons/data/repositories/bundle_repository.dart';
+import '../../../sync/providers/sync_provider.dart';
+import '../../providers/daily_quest_provider.dart';
 import '../../providers/home_provider.dart';
 import '../widgets/daily_quest_banner.dart';
 import '../widgets/home_header.dart';
@@ -48,13 +50,18 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(studentProfileProvider);
     final subjectsAsync = ref.watch(subjectsProvider);
+    final dailyQuest = ref.watch(dailyQuestProvider);
+    final isOnline = ref.watch(connectivityProvider).maybeWhen(
+      data: (v) => v,
+      orElse: () => true,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
         children: [
           // Offline banner sits above everything
-          const ConnectivityBanner(isOnline: true),
+          ConnectivityBanner(isOnline: isOnline),
 
           Expanded(
             child: CustomScrollView(
@@ -76,83 +83,18 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
 
-                // ── Starry Wizard Academy Showcase ──────────────────────
+                // ── Daily Quest Banner (real data) ──────────────────────
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF0C1227), Color(0xFF191F34)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.xpGold.withValues(alpha: 0.5), width: 1.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.xpGold.withValues(alpha: 0.15),
-                            blurRadius: 15,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(14),
-                            child: Image.asset(
-                              'assets/images/stitch/wizard_large.png',
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Text('🧙‍♂️', style: TextStyle(fontSize: 40)),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Starry Wizard Academy',
-                                      style: AppTextStyles.labelLarge.copyWith(
-                                        color: AppColors.xpGold,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    const Text('✨', style: TextStyle(fontSize: 14)),
-                                  ],
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Explore the Nebula Learning Path & unlock magic spells!',
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // ── Daily Quest Banner ──────────────────────────────────
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                     child: DailyQuestBanner(
-                      questTitle: 'Complete 3 Math quizzes',
-                      progress: 0.4,
-                      onTap: () => context.goNamed('lesson',
-                          pathParameters: {'lessonId': 'math_addition'}),
+                      questTitle: dailyQuest.isCompleted
+                          ? '🎉 Daily Quest Complete!'
+                          : dailyQuest.questTitle,
+                      progress: dailyQuest.progress,
+                      progressLabel: dailyQuest.progressLabel,
+                      isCompleted: dailyQuest.isCompleted,
+                      onTap: () => context.goNamed('quiz_hub'),
                     ),
                   ),
                 ),
