@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../home/providers/daily_quest_provider.dart';
 import '../../../home/providers/home_provider.dart';
 import '../../../sync/data/models/sync_action.dart';
 import '../../../sync/providers/sync_provider.dart';
@@ -36,12 +37,13 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final profile = ref.read(studentProfileProvider);
       final syncService = ref.read(syncServiceProvider);
+      final notifier = ref.read(studentProfileProvider.notifier);
 
       // 1. Award XP locally.
       if (widget.xpEarned > 0) {
-        ref.read(studentProfileProvider.notifier).addXp(widget.xpEarned);
+        notifier.addXp(widget.xpEarned);
 
-        // 2. Queue XP sync action.
+        // Queue XP sync action.
         await syncService.enqueue(
           SyncAction(
             id: const Uuid().v4(),
@@ -53,7 +55,7 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
         );
       }
 
-      // 3. Queue lesson completed sync action.
+      // 2. Queue lesson completed sync action.
       await syncService.enqueue(
         SyncAction.lessonCompleted(
           id: const Uuid().v4(),
@@ -63,8 +65,8 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
         ),
       );
 
-      // 4. Award first lesson badge locally + queue.
-      ref.read(studentProfileProvider.notifier).earnBadge('first_lesson');
+      // 3. Award first lesson badge locally + queue.
+      notifier.earnBadge('first_lesson');
       await syncService.enqueue(
         SyncAction(
           id: const Uuid().v4(),
@@ -75,7 +77,26 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
         ),
       );
 
-      // 5. Flush queue immediately (online sync if connected).
+      // 4. Record daily quest progress.
+      await ref.read(dailyQuestProvider.notifier).recordQuizCompletion();
+
+      // 5. Try to increment streak (only once per day).
+      final streakIncremented =
+          await ref.read(streakTrackerProvider.notifier).tryIncrementStreak();
+      if (streakIncremented) {
+        notifier.incrementStreak();
+        await syncService.enqueue(
+          SyncAction(
+            id: const Uuid().v4(),
+            type: SyncActionType.streakUpdated,
+            studentId: profile.id,
+            payload: {'streak': ref.read(studentProfileProvider).streak},
+            createdAt: DateTime.now(),
+          ),
+        );
+      }
+
+      // 6. Flush queue immediately (online sync if connected).
       await syncService.flushQueue();
     });
   }
