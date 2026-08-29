@@ -59,23 +59,98 @@ class FirestoreRepository {
 
   // ── Leaderboard ───────────────────────────────────────────────────────────
 
-  /// Reads leaderboard entries for a group, ordered by XP descending.
-  Future<List<Map<String, dynamic>>> getLeaderboard(String groupId) async {
+  /// Reads all student profiles using a collectionGroup query on 'profile'.
+  /// This directly queries all `students/{uid}/profile/data` documents.
+  /// Falls back to empty list if Firebase is unavailable.
+  Future<List<Map<String, dynamic>>> fetchLeaderboard() async {
     final db = _db;
-    if (db == null) return [];
-    try {
-      final snap = await db
-          .collection(AppConstants.fsGroups)
-          .doc(groupId)
-          .collection(AppConstants.fsLeaderboard)
-          .orderBy('xp', descending: true)
-          .limit(20)
-          .get();
-      return snap.docs.map((d) => d.data()).toList();
-    } catch (e) {
-      debugPrint('Firestore getLeaderboard error: $e');
+    if (db == null) {
+      debugPrint('⚠️ Firestore not available — leaderboard offline');
       return [];
     }
+    try {
+      debugPrint('📊 Fetching leaderboard via collectionGroup...');
+
+      // collectionGroup('profile') queries ALL /profile subcollections.
+      // No where filter needed — we just grab all profile docs.
+      final snap = await db
+          .collectionGroup(AppConstants.fsProfile)
+          .get();
+
+      final results = <Map<String, dynamic>>[];
+
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        // Skip empty docs or docs without a name (not a real profile)
+        if (data.isEmpty || !data.containsKey('name')) continue;
+
+        // Extract studentId from path: students/{uid}/profile/data
+        final pathSegments = doc.reference.path.split('/');
+        final studentId = pathSegments.length >= 2 ? pathSegments[1] : doc.id;
+
+        results.add({
+          ...data,
+          'studentId': studentId,
+        });
+      }
+
+      // Sort by XP descending
+      results.sort((a, b) {
+        final xpA = (a['xp'] as num?)?.toInt() ?? 0;
+        final xpB = (b['xp'] as num?)?.toInt() ?? 0;
+        return xpB.compareTo(xpA);
+      });
+
+      debugPrint('✅ Leaderboard fetched: ${results.length} students');
+      return results;
+    } catch (e) {
+      debugPrint('Firestore fetchLeaderboard error: $e');
+      return [];
+    }
+  }
+
+  /// Real-time stream of all student profiles sorted by XP.
+  /// Uses collectionGroup to efficiently stream all profile subcollections.
+  Stream<List<Map<String, dynamic>>> leaderboardStream() {
+    final db = _db;
+    if (db == null) return const Stream.empty();
+
+    return db
+        .collectionGroup(AppConstants.fsProfile)
+        .snapshots()
+        .map((snap) {
+      final results = <Map<String, dynamic>>[];
+
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        // Skip empty docs or docs without a name (not a real profile)
+        if (data.isEmpty || !data.containsKey('name')) continue;
+
+        // Extract studentId from path: students/{uid}/profile/data
+        final pathSegments = doc.reference.path.split('/');
+        final studentId = pathSegments.length >= 2 ? pathSegments[1] : doc.id;
+
+        results.add({
+          ...data,
+          'studentId': studentId,
+        });
+      }
+
+      // Sort by XP descending
+      results.sort((a, b) {
+        final xpA = (a['xp'] as num?)?.toInt() ?? 0;
+        final xpB = (b['xp'] as num?)?.toInt() ?? 0;
+        return xpB.compareTo(xpA);
+      });
+
+      debugPrint('📊 Leaderboard stream update: ${results.length} students');
+      return results;
+    });
+  }
+
+  /// Legacy: kept for compatibility.
+  Future<List<Map<String, dynamic>>> getLeaderboard(String groupId) async {
+    return fetchLeaderboard();
   }
 
   // ── Sync batch ────────────────────────────────────────────────────────────

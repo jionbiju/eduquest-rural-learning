@@ -49,28 +49,48 @@ class StudentProfileNotifier extends StateNotifier<StudentProfile> {
   }
 
   /// Creates a new profile from the login form and persists it.
+  /// If a profile for this studentId already exists locally, preserves
+  /// existing XP, streak and badges — only updates name and language.
   Future<void> createProfile({
     required String name,
     required String studentId,
     required String language,
   }) async {
-    state = StudentProfile(
-      id: studentId.isNotEmpty ? studentId : const Uuid().v4(),
-      name: name,
-      groupId: 'group_village_01',
-      xp: 0,
-      streak: 0,
-      badges: const [],
-      language: language,
-    );
+    final resolvedId = studentId.isNotEmpty ? studentId : const Uuid().v4();
+
+    // Check if we already have a saved profile for this exact user.
+    final existing = _loadFromHive();
+    final isSameUser = existing != null && existing.id == resolvedId;
+
+    if (isSameUser) {
+      // Same user logging back in — update name/language but keep progress.
+      state = existing.copyWith(
+        name: name,
+        language: language,
+      );
+    } else {
+      // New user or different user — start fresh.
+      state = StudentProfile(
+        id: resolvedId,
+        name: name,
+        groupId: 'group_village_01',
+        xp: 0,
+        streak: 0,
+        badges: const [],
+        language: language,
+      );
+    }
+
     await _persist();
 
-    // Push profile to Firestore immediately.
+    // Push profile to Firestore immediately (merge so XP increments are safe).
     try {
       final firestore = FirestoreRepository();
       await firestore.upsertProfile(
         studentId: state.id,
-        data: state.toJson(),
+        data: isSameUser
+            ? {'name': state.name, 'language': state.language}
+            : state.toJson(),
       );
     } catch (_) {
       // Will sync later when online.
