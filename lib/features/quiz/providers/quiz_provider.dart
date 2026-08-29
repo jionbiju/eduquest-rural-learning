@@ -69,7 +69,11 @@ class QuizNotifier extends StateNotifier<QuizState> {
   /// based on current rolling accuracy (adaptive difficulty).
   void nextQuestion() {
     if (state.isLastQuestion) {
-      state = state.copyWith(isCompleted: true);
+      final completionBonus = state.correctCount > 0 ? AppConstants.xpPerLessonComplete : 0;
+      state = state.copyWith(
+        isCompleted: true,
+        xpEarned: state.xpEarned + completionBonus,
+      );
       // Award lesson completion XP.
       _ref.read(lessonCompletedProvider(_topicId).notifier).state = true;
       return;

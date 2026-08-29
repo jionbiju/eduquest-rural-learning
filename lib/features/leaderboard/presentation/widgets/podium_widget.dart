@@ -30,7 +30,7 @@ class PodiumWidget extends StatelessWidget {
           entry: second,
           height: 90,
           crownEmoji: '🥈',
-          color: const Color(0xFFC0C0C0),
+          color: const Color(0xFFE2E8F0),
           isCurrentUser: second.studentId == currentStudentId,
         ),
         const SizedBox(width: 12),
@@ -48,7 +48,7 @@ class PodiumWidget extends StatelessWidget {
           entry: third,
           height: 70,
           crownEmoji: '🥉',
-          color: const Color(0xFFCD7F32),
+          color: const Color(0xFFFDBA74),
           isCurrentUser: third.studentId == currentStudentId,
         ),
       ],
@@ -77,17 +77,18 @@ class _PodiumColumn extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Crown emoji
-        Text(crownEmoji, style: const TextStyle(fontSize: 24)),
+        Text(crownEmoji, style: const TextStyle(fontSize: 26)),
         const SizedBox(height: 4),
         // Avatar with highlight if current user
         Container(
           decoration: isCurrentUser
               ? BoxDecoration(
                   shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.xpGold, width: 3),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.5),
-                      blurRadius: 12,
+                      color: AppColors.xpGold.withValues(alpha: 0.6),
+                      blurRadius: 16,
                       spreadRadius: 2,
                     ),
                   ],
@@ -100,34 +101,64 @@ class _PodiumColumn extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
+        // Student Name in high contrast white
         Text(
           entry.name.split(' ').first,
-          style: AppTextStyles.labelMedium,
+          style: AppTextStyles.labelMedium.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        Text(
-          '${entry.xp} XP',
-          style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey600),
+        const SizedBox(height: 2),
+        // High contrast XP Chip on dark podium background
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.35),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withValues(alpha: 0.4)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('⭐', style: TextStyle(fontSize: 10)),
+              const SizedBox(width: 3),
+              Text(
+                '${entry.xp} XP',
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: AppColors.xpGold,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         // Podium block
         Container(
-          width: 80,
+          width: 84,
           height: height,
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.2),
+            color: color.withValues(alpha: 0.22),
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(10),
-              topRight: Radius.circular(10),
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
             ),
             border: Border.all(color: color, width: 2),
           ),
-          child: Center(
-            child: Text(
-              '#${entry.rank}',
-              style: AppTextStyles.headlineMedium.copyWith(color: color),
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '#${entry.rank}',
+                style: AppTextStyles.headlineMedium.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
           ),
         ),
       ],
