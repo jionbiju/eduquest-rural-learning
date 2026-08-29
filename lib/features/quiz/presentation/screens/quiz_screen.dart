@@ -24,6 +24,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
   bool _showXpPopup = false;
   int _lastXpGain = 0;
   bool _initialized = false;
+  bool _navigatedToResult = false; // guard against double navigation
 
   static const _optionLabels = ['A', 'B', 'C', 'D'];
 
@@ -33,6 +34,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
     // Reset (and shuffle) the quiz each time this screen is opened.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
+        _navigatedToResult = false; // reset guard for fresh quiz
         ref.read(quizProvider(widget.topicId).notifier).resetQuiz();
         setState(() => _initialized = true);
       }
@@ -51,13 +53,15 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
       );
     }
 
-    // Navigate to results when quiz is complete (but NOT on an empty/reset state).
-    if (quizState.isCompleted && quizState.questions.isNotEmpty) {
+    // Navigate to results when quiz is complete — guard against double fire.
+    if (quizState.isCompleted &&
+        quizState.questions.isNotEmpty &&
+        !_navigatedToResult) {
+      _navigatedToResult = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          context.goNamed(
-            'quiz_result',
-            pathParameters: {'lessonId': widget.topicId},
+          context.go(
+            '/home/lesson/${widget.topicId}/quiz/result',
             extra: {
               'correctCount': quizState.correctCount,
               'totalQuestions': quizState.totalQuestions,
@@ -67,9 +71,20 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
           );
         }
       });
+      // Show loading while navigating to result
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
-    final question = quizState.currentQuestion;
+    // Safe access — currentQuestionOrNull guards empty list
+    final question = quizState.currentQuestionOrNull;
+    if (question == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final progress =
         (quizState.currentIndex + 1) / quizState.totalQuestions;
 

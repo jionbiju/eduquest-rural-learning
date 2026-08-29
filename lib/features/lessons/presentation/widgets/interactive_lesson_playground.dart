@@ -840,29 +840,36 @@ class _WaterCyclePlaygroundState extends State<_WaterCyclePlayground> {
 
           // Steps list
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _cycleButton('Evaporation', '💧 ➜ 💨', () {
-                setState(() {
-                  _activeStep = 'Evaporation: The Sun heats the ocean water, turning it into invisible water vapour rising into the air.';
-                  _emojiAnimation = '💨';
-                  _themeColor = AppColors.secondary;
-                });
-              }),
-              _cycleButton('Condensation', '💨 ➜ ☁️', () {
-                setState(() {
-                  _activeStep = 'Condensation: High in the sky, the cold air turns the water vapour back into liquid water, forming clouds.';
-                  _emojiAnimation = '☁️';
-                  _themeColor = AppColors.primary;
-                });
-              }),
-              _cycleButton('Precipitation', '☁️ ➜ 🌧️', () {
-                setState(() {
-                  _activeStep = 'Precipitation: When the clouds get too heavy with water, it falls back to the ground as rain or snow.';
-                  _emojiAnimation = '🌧️';
-                  _themeColor = AppColors.success;
-                });
-              }),
+              Expanded(
+                child: _cycleButton('Evaporation', '💧 ➜ 💨', () {
+                  setState(() {
+                    _activeStep = 'Evaporation: The Sun heats the ocean water, turning it into invisible water vapour rising into the air.';
+                    _emojiAnimation = '💨';
+                    _themeColor = AppColors.secondary;
+                  });
+                }),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _cycleButton('Condensation', '💨 ➜ ☁️', () {
+                  setState(() {
+                    _activeStep = 'Condensation: High in the sky, the cold air turns the water vapour back into liquid water, forming clouds.';
+                    _emojiAnimation = '☁️';
+                    _themeColor = AppColors.primary;
+                  });
+                }),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _cycleButton('Precipitation', '☁️ ➜ 🌧️', () {
+                  setState(() {
+                    _activeStep = 'Precipitation: When the clouds get too heavy with water, it falls back to the ground as rain or snow.';
+                    _emojiAnimation = '🌧️';
+                    _themeColor = AppColors.success;
+                  });
+                }),
+              ),
             ],
           ),
           const SizedBox(height: 16),

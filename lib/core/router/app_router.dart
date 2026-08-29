@@ -98,13 +98,22 @@ final appRouter = GoRouter(
                       path: 'result',
                       name: 'quiz_result',
                       builder: (context, state) {
-                        final extra =
-                            state.extra as Map<String, dynamic>;
+                        // Guard against null extra — happens on hot reload
+                        // or browser back/forward navigation.
+                        final raw = state.extra;
+                        if (raw == null || raw is! Map<String, dynamic>) {
+                          // No data — go back to quiz hub safely
+                          return const _QuizResultFallback();
+                        }
+                        final extra = raw;
                         return QuizResultScreen(
-                          correctCount: extra['correctCount'] as int,
-                          totalQuestions: extra['totalQuestions'] as int,
-                          xpEarned: extra['xpEarned'] as int,
-                          topicId: extra['topicId'] as String,
+                          correctCount:
+                              (extra['correctCount'] as num?)?.toInt() ?? 0,
+                          totalQuestions:
+                              (extra['totalQuestions'] as num?)?.toInt() ?? 0,
+                          xpEarned:
+                              (extra['xpEarned'] as num?)?.toInt() ?? 0,
+                          topicId: extra['topicId'] as String? ?? '',
                         );
                       },
                     ),
@@ -153,3 +162,19 @@ final appRouter = GoRouter(
     body: Center(child: Text('Page not found: ${state.error}')),
   ),
 );
+
+/// Shown when quiz result route is accessed without data (e.g. hot reload).
+class _QuizResultFallback extends StatelessWidget {
+  const _QuizResultFallback();
+
+  @override
+  Widget build(BuildContext context) {
+    // Redirect to quiz hub after one frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (context.mounted) context.goNamed('quiz_hub');
+    });
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+}

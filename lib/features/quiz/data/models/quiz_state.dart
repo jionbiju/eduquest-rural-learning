@@ -28,8 +28,16 @@ class QuizState {
 
   final bool isCompleted;
 
+  /// Returns current question safely — null if questions not loaded yet.
+  QuestionModel? get currentQuestionOrNull =>
+      questions.isNotEmpty && currentIndex < questions.length
+          ? questions[currentIndex]
+          : null;
+
+  /// Unsafe getter — only call when questions.isNotEmpty is confirmed.
   QuestionModel get currentQuestion => questions[currentIndex];
-  bool get isLastQuestion => currentIndex == questions.length - 1;
+  bool get isLastQuestion =>
+      questions.isNotEmpty && currentIndex == questions.length - 1;
   int get totalQuestions => questions.length;
 
   /// Rolling accuracy over the last N answers.

@@ -216,9 +216,10 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => context.goNamed(
-                    'quiz',
-                    pathParameters: {'lessonId': widget.topicId},
+                  // Use go() with full path to avoid GoRouter nested param issues.
+                  // Path: /home/lesson/{topicId}/quiz
+                  onPressed: () => context.go(
+                    '/home/lesson/${widget.topicId}/quiz',
                   ),
                   icon: const Icon(Icons.refresh_rounded),
                   label: const Text('Try Again'),
