@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -20,9 +21,7 @@ final hasExistingProfileProvider = Provider<bool>((ref) {
 });
 
 class StudentProfileNotifier extends StateNotifier<StudentProfile> {
-  StudentProfileNotifier() : super(_loadFromHive() ?? _defaultProfile()) {
-    // Persist whenever state changes.
-  }
+  StudentProfileNotifier() : super(_loadFromHive() ?? _defaultProfile());
 
   /// Loads profile from Hive on startup.
   static StudentProfile? _loadFromHive() {
@@ -48,9 +47,12 @@ class StudentProfileNotifier extends StateNotifier<StudentProfile> {
     await box.put('profile', jsonEncode(state.toJson()));
   }
 
-  /// Creates a new profile from the login form and persists it.
-  /// If a profile for this studentId already exists locally, preserves
-  /// existing XP, streak and badges — only updates name and language.
+  /// Called on login/signup.
+  ///
+  /// Priority order for restoring progress:
+  ///   1. If Hive has a profile for this exact UID → keep it (fastest, offline)
+  ///   2. Else fetch from Firestore → restore XP/streak/badges from cloud
+  ///   3. Else create a brand-new profile (first ever sign-up)
   Future<void> createProfile({
     required String name,
     required String studentId,
@@ -58,43 +60,80 @@ class StudentProfileNotifier extends StateNotifier<StudentProfile> {
   }) async {
     final resolvedId = studentId.isNotEmpty ? studentId : const Uuid().v4();
 
-    // Check if we already have a saved profile for this exact user.
+    // ── Step 1: Check local Hive cache ──────────────────────────────
     final existing = _loadFromHive();
-    final isSameUser = existing != null && existing.id == resolvedId;
+    if (existing != null && existing.id == resolvedId) {
+      // Same user — update name/language but keep all progress
+      state = existing.copyWith(name: name, language: language);
+      await _persist();
+      debugPrint('✅ Profile restored from Hive (xp=${state.xp})');
 
-    if (isSameUser) {
-      // Same user logging back in — update name/language but keep progress.
-      state = existing.copyWith(
-        name: name,
-        language: language,
-      );
-    } else {
-      // New user or different user — start fresh.
-      state = StudentProfile(
-        id: resolvedId,
-        name: name,
-        groupId: 'group_village_01',
-        xp: 0,
-        streak: 0,
-        badges: const [],
-        language: language,
-      );
+      // Sync updated name/language to Firestore
+      _syncNameLanguage(resolvedId, name, language);
+      return;
     }
 
-    await _persist();
+    // ── Step 2: Try Firestore for existing cloud progress ────────────
+    try {
+      final firestore = FirestoreRepository();
+      final cloudData = await firestore.fetchProfileById(resolvedId);
 
-    // Push profile to Firestore immediately (merge so XP increments are safe).
+      if (cloudData != null && cloudData.isNotEmpty) {
+        // Cloud profile found — restore it locally
+        final cloudProfile = StudentProfile(
+          id: resolvedId,
+          name: (cloudData['name'] as String?)?.isNotEmpty == true
+              ? cloudData['name'] as String
+              : name,
+          groupId: cloudData['groupId'] as String? ?? 'group_village_01',
+          xp: (cloudData['xp'] as num?)?.toInt() ?? 0,
+          streak: (cloudData['streak'] as num?)?.toInt() ?? 0,
+          badges: List<String>.from(cloudData['badges'] as List? ?? []),
+          language: language, // use whatever user selected at login
+        );
+        state = cloudProfile;
+        await _persist();
+        debugPrint('✅ Profile restored from Firestore (xp=${state.xp})');
+
+        // Update language/name in Firestore too
+        _syncNameLanguage(resolvedId, name, language);
+        return;
+      }
+    } catch (e) {
+      debugPrint('⚠️ Could not fetch profile from Firestore: $e');
+    }
+
+    // ── Step 3: Brand new user — create fresh ────────────────────────
+    state = StudentProfile(
+      id: resolvedId,
+      name: name,
+      groupId: 'group_village_01',
+      xp: 0,
+      streak: 0,
+      badges: const [],
+      language: language,
+    );
+    await _persist();
+    debugPrint('✅ New profile created for $resolvedId');
+
+    // Push full profile to Firestore for new user
     try {
       final firestore = FirestoreRepository();
       await firestore.upsertProfile(
-        studentId: state.id,
-        data: isSameUser
-            ? {'name': state.name, 'language': state.language}
-            : state.toJson(),
+        studentId: resolvedId,
+        data: state.toJson(),
       );
     } catch (_) {
-      // Will sync later when online.
+      // Will sync when online
     }
+  }
+
+  /// Sync only name and language to Firestore without overwriting XP.
+  void _syncNameLanguage(String studentId, String name, String language) {
+    FirestoreRepository().upsertProfile(
+      studentId: studentId,
+      data: {'name': name, 'language': language},
+    ).catchError((_) {});
   }
 
   void addXp(int amount) {
@@ -125,6 +164,7 @@ class StudentProfileNotifier extends StateNotifier<StudentProfile> {
   }
 
   /// Clears the local profile from Hive on sign out.
+  /// Note: Firestore data is kept — it will be restored on next login.
   Future<void> clearProfile() async {
     final box = Hive.box<String>(AppConstants.hiveUserBox);
     await box.delete('profile');

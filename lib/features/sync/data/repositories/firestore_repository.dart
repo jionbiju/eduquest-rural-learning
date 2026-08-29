@@ -35,6 +35,29 @@ class FirestoreRepository {
     }
   }
 
+  /// Fetches a single student's profile data by UID.
+  /// Returns null if not found or Firebase unavailable.
+  Future<Map<String, dynamic>?> fetchProfileById(String studentId) async {
+    final db = _db;
+    if (db == null) return null;
+    try {
+      final snap = await db
+          .collection(AppConstants.fsStudents)
+          .doc(studentId)
+          .collection(AppConstants.fsProfile)
+          .doc('data')
+          .get();
+      if (snap.exists && snap.data() != null) {
+        debugPrint('✅ Fetched profile from Firestore for $studentId');
+        return snap.data();
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Firestore fetchProfileById error: $e');
+      return null;
+    }
+  }
+
   // ── Progress ─────────────────────────────────────────────────────────────
 
   /// Writes a lesson completion record.
