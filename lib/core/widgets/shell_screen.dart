@@ -9,12 +9,13 @@ class ShellScreen extends StatelessWidget {
 
   final Widget child;
 
+  /// Returns the bottom nav index for the current route location.
   static int _indexForLocation(String location) {
     if (location.startsWith('/home/leaderboard')) return 3;
     if (location.startsWith('/home/settings')) return 4;
-    if (location.startsWith('/home/lessons')) return 1;
-    if (location.startsWith('/home/quests')) return 2;
-    return 0;
+    if (location.startsWith('/home/profile')) return 4; // profile = settings tab
+    if (location.startsWith('/home/lesson')) return 1;
+    return 0; // home
   }
 
   @override
@@ -29,17 +30,17 @@ class ShellScreen extends StatelessWidget {
         onTap: (index) {
           switch (index) {
             case 0:
-              context.go('/home');
+              context.goNamed('home');
             case 1:
-              // Lessons tab — go to first subject for now
-              context.go('/home');
+              // Lessons tab — navigate home for now, lessons will be added later
+              context.goNamed('home');
             case 2:
-              // Quiz tab — go home for now
-              context.go('/home');
+              // Quiz tab — navigate home for now
+              context.goNamed('home');
             case 3:
-              context.go('/home/leaderboard');
+              context.goNamed('leaderboard');
             case 4:
-              context.go('/home/settings');
+              context.goNamed('settings');
           }
         },
       ),
