@@ -98,4 +98,16 @@ class StudentProfileNotifier extends StateNotifier<StudentProfile> {
     state = state.copyWith(language: lang);
     _persist();
   }
+
+  void updateName(String name) {
+    state = state.copyWith(name: name.trim());
+    _persist();
+  }
+
+  /// Clears the local profile from Hive on sign out.
+  Future<void> clearProfile() async {
+    final box = Hive.box<String>(AppConstants.hiveUserBox);
+    await box.delete('profile');
+    state = _defaultProfile();
+  }
 }
