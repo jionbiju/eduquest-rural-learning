@@ -61,9 +61,11 @@ class AuthService {
     required String email,
     required String password,
     required String displayName,
+    UserRole role = UserRole.student,
+    String? groupId,
   }) async {
     try {
-      debugPrint('📝 Signing up user: $email');
+      debugPrint('📝 Signing up user: $email with role: ${role.name}');
       
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -84,6 +86,8 @@ class AuthService {
         displayName: user.displayName ?? displayName,
         photoUrl: user.photoURL,
         createdAt: user.metadata.creationTime ?? DateTime.now(),
+        role: role,
+        groupId: groupId,
       );
     } on FirebaseAuthException catch (e) {
       debugPrint('❌ Sign up failed: ${e.code} - ${e.message}');
