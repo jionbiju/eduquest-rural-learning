@@ -29,29 +29,23 @@ final firestoreRepositoryProvider = Provider<FirestoreRepository>((ref) {
 
 final pendingSyncCountProvider = StateProvider<int>((ref) => 0);
 
-// ── Sync service ──────────────────────────────────────────────────────────────
-
 final syncServiceProvider = Provider<SyncService>((ref) {
-  return SyncService(ref);
+  final service = SyncService(ref);
+  ref.listen<AsyncValue<bool>>(connectivityProvider, (prev, next) {
+    next.whenData((isOnline) {
+      if (isOnline) {
+        debugPrint('🔄 Connectivity restored — flushing sync queue');
+        service.flushQueue();
+      }
+    });
+  });
+  return service;
 });
 
 class SyncService {
-  SyncService(this._ref) {
-    _init();
-  }
+  SyncService(this._ref);
 
   final Ref _ref;
-
-  void _init() {
-    _ref.listen<AsyncValue<bool>>(connectivityProvider, (prev, next) {
-      next.whenData((isOnline) {
-        if (isOnline) {
-          debugPrint('🔄 Connectivity restored — flushing sync queue');
-          flushQueue();
-        }
-      });
-    });
-  }
 
   /// Adds an action to the local Hive queue.
   Future<void> enqueue(SyncAction action) async {

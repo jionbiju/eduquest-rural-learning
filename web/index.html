@@ -18,7 +18,7 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="EduQuest - Rural Learning App">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -29,8 +29,101 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>eduquest</title>
+  <title>EduQuest - Rural Learning</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- EduQuest High-Precision Hindi & English Web Speech Synthesis Engine -->
+  <script>
+    window.eduquestTts = {
+      findBestVoice: function(isHindi) {
+        var voices = window.speechSynthesis.getVoices();
+        if (!voices || voices.length === 0) return null;
+        
+        if (isHindi) {
+          // Priority 1: Google Hindi or Microsoft Hindi (Kalpana / Hemant)
+          for (var i = 0; i < voices.length; i++) {
+            var v = voices[i];
+            var name = (v.name || '').toLowerCase();
+            if (name.includes('google हिन्दी') || name.includes('google hindi') || name.includes('kalpana') || name.includes('hemant')) {
+              return v;
+            }
+          }
+          // Priority 2: Any voice with hi-IN or hi or Hindi name
+          for (var j = 0; j < voices.length; j++) {
+            var v2 = voices[j];
+            var lang2 = (v2.lang || '').toLowerCase();
+            var name2 = (v2.name || '').toLowerCase();
+            if (lang2.startsWith('hi') || name2.includes('hindi') || name2.includes('हिन्दी')) {
+              return v2;
+            }
+          }
+          // Priority 3: Any India locale voice
+          for (var k = 0; k < voices.length; k++) {
+            var v3 = voices[k];
+            var lang3 = (v3.lang || '').toLowerCase();
+            if (lang3.includes('-in') || lang3.includes('_in')) {
+              return v3;
+            }
+          }
+        } else {
+          // English natural voices
+          for (var e = 0; e < voices.length; e++) {
+            var ve = voices[e];
+            var nameE = (ve.name || '').toLowerCase();
+            var langE = (ve.lang || '').toLowerCase();
+            if (langE.startsWith('en') && (nameE.includes('natural') || nameE.includes('google') || nameE.includes('jenny') || nameE.includes('guy') || nameE.includes('samantha'))) {
+              return ve;
+            }
+          }
+        }
+        return null;
+      },
+      speak: function(text, locale, onEnd, onError) {
+        try {
+          window.speechSynthesis.cancel();
+          if (!text || text.trim().length === 0) return;
+
+          var isHindi = (locale === 'hi' || (locale && locale.startsWith('hi')));
+          var utt = new SpeechSynthesisUtterance(text);
+          utt.lang = isHindi ? 'hi-IN' : 'en-US';
+          utt.rate = isHindi ? 0.85 : 0.95;
+          utt.pitch = 1.0;
+          utt.volume = 1.0;
+
+          var voice = this.findBestVoice(isHindi);
+          if (voice) {
+            utt.voice = voice;
+            console.log('[EduQuest TTS] Selected voice:', voice.name, voice.lang);
+          }
+
+          utt.onend = function() {
+            if (typeof onEnd === 'function') onEnd();
+          };
+          utt.onerror = function(err) {
+            console.warn('[EduQuest TTS] error:', err);
+            if (typeof onError === 'function') onError(err);
+          };
+
+          window.speechSynthesis.speak(utt);
+        } catch (e) {
+          console.error('[EduQuest TTS] Exception:', e);
+        }
+      },
+      stop: function() {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (e) {}
+      }
+    };
+
+    // Pre-warm voices on load
+    if (window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = function() {
+        window.speechSynthesis.getVoices();
+      };
+      window.speechSynthesis.getVoices();
+    }
+  </script>
 </head>
 <body>
   <!--

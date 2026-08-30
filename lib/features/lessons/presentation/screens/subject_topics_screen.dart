@@ -7,6 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../lessons/data/models/subject_model.dart';
 import '../../../lessons/data/models/topic_model.dart';
 import '../../../lessons/data/repositories/bundle_repository.dart';
+import '../../../settings/providers/settings_provider.dart';
 
 /// Shows all topics under one subject and lets the user pick one.
 class SubjectTopicsScreen extends ConsumerWidget {
@@ -27,6 +28,8 @@ class SubjectTopicsScreen extends ConsumerWidget {
   String _emojiForSubject(SubjectModel s) {
     if (s.id.startsWith('math')) return '🔢';
     if (s.id.startsWith('science')) return '🔬';
+    if (s.id.startsWith('english')) return '📖';
+    if (s.id.startsWith('history')) return '🏛️';
     return '📚';
   }
 
@@ -38,6 +41,8 @@ class SubjectTopicsScreen extends ConsumerWidget {
     if (t.id.startsWith('science_plants')) return '🌱';
     if (t.id.startsWith('science_water')) return '💧';
     if (t.id.startsWith('science_animals')) return '🐾';
+    if (t.id.startsWith('english')) return '📖';
+    if (t.id.startsWith('history')) return '🏛️';
     return '📄';
   }
 
@@ -47,15 +52,18 @@ class SubjectTopicsScreen extends ConsumerWidget {
     return AppColors.error;
   }
 
-  String _difficultyLabel(int d) {
-    if (d == 1) return 'Easy';
-    if (d == 2) return 'Medium';
-    return 'Hard';
+  String _difficultyLabel(int d, String locale) {
+    final isHindi = locale == 'hi';
+    if (d == 1) return isHindi ? 'सरल' : 'Easy';
+    if (d == 2) return isHindi ? 'मध्यम' : 'Medium';
+    return isHindi ? 'कठिन' : 'Hard';
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final subjectsAsync = ref.watch(subjectsProvider);
+    final selectedLang = ref.watch(selectedLanguageProvider);
+    final isHindi = selectedLang == 'hi';
 
     return subjectsAsync.when(
       loading: () => const Scaffold(
@@ -98,7 +106,7 @@ class SubjectTopicsScreen extends ConsumerWidget {
                 ),
                 flexibleSpace: FlexibleSpaceBar(
                   title: Text(
-                    subject.localizedName('en'),
+                    subject.localizedName(selectedLang),
                     style: AppTextStyles.headlineMedium.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -132,7 +140,9 @@ class SubjectTopicsScreen extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                   child: Text(
-                    '${subject.topics.length} topics available — tap one to start learning',
+                    isHindi
+                        ? '${subject.topics.length} विषय उपलब्ध — अध्ययन शुरू करने के लिए किसी एक पर टैप करें'
+                        : '${subject.topics.length} topics available — tap one to start learning',
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: AppColors.grey600,
                     ),
@@ -153,7 +163,8 @@ class SubjectTopicsScreen extends ConsumerWidget {
                         color: color,
                         emoji: _emojiForTopic(topic),
                         difficultyColor: _difficultyColor(topic.difficulty),
-                        difficultyLabel: _difficultyLabel(topic.difficulty),
+                        difficultyLabel: _difficultyLabel(topic.difficulty, selectedLang),
+                        locale: selectedLang,
                         index: i + 1,
                       );
                     },
@@ -180,6 +191,7 @@ class _TopicCard extends StatelessWidget {
     required this.emoji,
     required this.difficultyColor,
     required this.difficultyLabel,
+    required this.locale,
     required this.index,
   });
 
@@ -188,6 +200,7 @@ class _TopicCard extends StatelessWidget {
   final String emoji;
   final Color difficultyColor;
   final String difficultyLabel;
+  final String locale;
   final int index;
 
   int _maxXp() => topic.questions.fold(0, (sum, q) {
@@ -198,6 +211,7 @@ class _TopicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isHindi = locale == 'hi';
     return GestureDetector(
       onTap: () => context.goNamed(
         'lesson',
@@ -261,9 +275,10 @@ class _TopicCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      topic.localizedName('en'),
+                      topic.localizedName(locale),
                       style: AppTextStyles.headlineSmall.copyWith(
                         color: AppColors.grey800,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -289,7 +304,7 @@ class _TopicCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '${topic.questions.length} Qs',
+                          isHindi ? '${topic.questions.length} प्रश्न' : '${topic.questions.length} Qs',
                           style: AppTextStyles.bodySmall,
                         ),
                         const SizedBox(width: 8),
@@ -297,6 +312,7 @@ class _TopicCard extends StatelessWidget {
                           '⭐ ${_maxXp()} XP',
                           style: AppTextStyles.bodySmall.copyWith(
                             color: AppColors.xpGold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
@@ -305,19 +321,10 @@ class _TopicCard extends StatelessWidget {
                 ),
               ),
 
-              // Arrow
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: color,
-                ),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: AppColors.grey400,
               ),
             ],
           ),
