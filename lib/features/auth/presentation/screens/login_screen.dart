@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../home/providers/home_provider.dart';
+import '../../data/models/auth_user.dart';
 import '../../providers/auth_provider.dart';
 
 /// Login screen for existing users.
@@ -42,19 +44,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     if (!mounted) return;
 
+    // Check the auth state after sign in completes
     final authState = ref.read(authNotifierProvider);
-    authState.whenData((user) {
-      if (user != null) {
+    
+    // Handle different states
+    if (authState.hasError) {
+      // Error is already displayed in the UI via the error container below
+      return;
+    }
+    
+    if (authState.isLoading) {
+      // Still loading, wait a moment
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (!mounted) return;
+    }
+    
+    // Get the user
+    final user = authState.value;
+    
+    if (user != null) {
+      debugPrint('🔍 Login: User role is ${user.role.name}');
+      
+      if (user.role == UserRole.student) {
         // Load or create student profile linked to Firebase user
-        ref.read(studentProfileProvider.notifier).createProfile(
+        await ref.read(studentProfileProvider.notifier).createProfile(
               name: user.displayName,
               studentId: user.uid,
               language: _selectedLanguage,
+              groupId: user.groupId,
             );
 
-        if (mounted) context.goNamed('home');
+        if (mounted) {
+          debugPrint('📍 Navigating to home');
+          context.goNamed('home');
+        }
+      } else {
+        // Teacher - go to teacher dashboard
+        debugPrint('📍 Navigating to teacher dashboard');
+        if (mounted) context.goNamed('teacher_dashboard');
       }
-    });
+    } else {
+      debugPrint('⚠️ User is null after sign in');
+    }
   }
 
   @override
