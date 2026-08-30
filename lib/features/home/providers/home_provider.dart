@@ -57,18 +57,24 @@ class StudentProfileNotifier extends StateNotifier<StudentProfile> {
     required String name,
     required String studentId,
     required String language,
+    String? groupId,
   }) async {
     final resolvedId = studentId.isNotEmpty ? studentId : const Uuid().v4();
+    final resolvedGroupId = groupId ?? 'group_village_01';
 
     // ── Step 1: Check local Hive cache ──────────────────────────────
     final existing = _loadFromHive();
     if (existing != null && existing.id == resolvedId) {
-      // Same user — update name/language but keep all progress
-      state = existing.copyWith(name: name, language: language);
+      // Same user — update name/language/groupId but keep all progress
+      state = existing.copyWith(
+        name: name,
+        language: language,
+        groupId: resolvedGroupId,
+      );
       await _persist();
       debugPrint('✅ Profile restored from Hive (xp=${state.xp})');
 
-      // Sync updated name/language to Firestore
+      // Sync updated data to Firestore
       _syncNameLanguage(resolvedId, name, language);
       return;
     }
@@ -85,7 +91,7 @@ class StudentProfileNotifier extends StateNotifier<StudentProfile> {
           name: (cloudData['name'] as String?)?.isNotEmpty == true
               ? cloudData['name'] as String
               : name,
-          groupId: cloudData['groupId'] as String? ?? 'group_village_01',
+          groupId: cloudData['groupId'] as String? ?? resolvedGroupId,
           xp: (cloudData['xp'] as num?)?.toInt() ?? 0,
           streak: (cloudData['streak'] as num?)?.toInt() ?? 0,
           badges: List<String>.from(cloudData['badges'] as List? ?? []),
