@@ -1,8 +1,12 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../core/constants/app_constants.dart';
+import '../../features/auth/data/models/auth_user.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
@@ -17,17 +21,47 @@ import '../../features/quiz/presentation/screens/quiz_hub_screen.dart';
 import '../../features/quiz/presentation/screens/quiz_result_screen.dart';
 import '../../features/quiz/presentation/screens/quiz_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/teacher_content/presentation/screens/teacher_dashboard_screen.dart';
 import '../widgets/shell_screen.dart';
 
 part 'app_routes.dart';
 
-/// Returns true if a student profile exists in Hive.
+/// Returns true if a user is authenticated (either student or teacher)
 bool _hasProfile() {
   try {
     final box = Hive.box<String>(AppConstants.hiveUserBox);
-    return box.get('profile') != null;
+    // Check for authUser (new) or profile (legacy student-only)
+    return box.get('authUser') != null || box.get('profile') != null;
   } catch (_) {
     return false;
+  }
+}
+
+/// Get user role from stored auth data
+UserRole? _getUserRole() {
+  try {
+    final box = Hive.box<String>(AppConstants.hiveUserBox);
+    
+    // First check for authUser (contains role)
+    final authUserJson = box.get('authUser');
+    if (authUserJson != null) {
+      final decoded = jsonDecode(authUserJson) as Map<String, dynamic>;
+      final roleString = decoded['role'] as String?;
+      if (roleString != null) {
+        return UserRole.fromJson(roleString);
+      }
+    }
+    
+    // Fallback: check for old profile format (student-only)
+    final profileJson = box.get('profile');
+    if (profileJson != null) {
+      return UserRole.student;
+    }
+    
+    return null;
+  } catch (e) {
+    debugPrint('❌ Error getting user role: $e');
+    return null;
   }
 }
 
@@ -40,12 +74,28 @@ final appRouter = GoRouter(
     final onLogin = state.matchedLocation == AppRoutes.login;
     final onSignup = state.matchedLocation == AppRoutes.signup;
     final onForgotPassword = state.matchedLocation == AppRoutes.forgotPassword;
+    final onTeacherDashboard = state.matchedLocation == AppRoutes.teacherDashboard;
 
     // Always let splash, login, signup, and forgot password through.
     if (onSplash || onLogin || onSignup || onForgotPassword) return null;
 
-    // Any other route — redirect to login if no profile.
+    // Check if user has a profile
     if (!_hasProfile()) return AppRoutes.login;
+
+    // Role-based routing: redirect teachers to dashboard, students to home
+    final userRole = _getUserRole();
+    
+    if (userRole == UserRole.teacher) {
+      // Teacher trying to access student routes -> redirect to teacher dashboard
+      if (!onTeacherDashboard && !state.matchedLocation.startsWith('/teacher')) {
+        return AppRoutes.teacherDashboard;
+      }
+    } else {
+      // Student trying to access teacher routes -> redirect to home
+      if (onTeacherDashboard || state.matchedLocation.startsWith('/teacher')) {
+        return AppRoutes.home;
+      }
+    }
 
     return null;
   },
@@ -69,6 +119,13 @@ final appRouter = GoRouter(
       path: AppRoutes.forgotPassword,
       name: 'forgot_password',
       builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+
+    // ── TEACHER ROUTES ────────────────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.teacherDashboard,
+      name: 'teacher_dashboard',
+      builder: (context, state) => const TeacherDashboardScreen(),
     ),
 
     // ── Shell wraps all main screens with bottom nav ──────────────────
