@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../home/providers/home_provider.dart';
+import '../../data/models/auth_user.dart';
 import '../../providers/auth_provider.dart';
 
 /// Sign up screen for new users.
@@ -23,9 +24,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _groupIdController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   String _selectedLanguage = 'en';
+  UserRole _selectedRole = UserRole.student;
 
   @override
   void dispose() {
@@ -33,17 +36,29 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _groupIdController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Sign up via Firebase
+    // Get groupId (required for both students and teachers)
+    final groupId = _groupIdController.text.trim();
+    if (groupId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a class/group ID')),
+      );
+      return;
+    }
+
+    // Sign up via Firebase with role and groupId
     await ref.read(authNotifierProvider.notifier).signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text,
           displayName: _nameController.text.trim(),
+          role: _selectedRole,
+          groupId: groupId,
         );
 
     if (!mounted) return;
@@ -51,14 +66,20 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     final authState = ref.read(authNotifierProvider);
     authState.whenData((user) {
       if (user != null) {
-        // Create student profile with Firebase user data
-        ref.read(studentProfileProvider.notifier).createProfile(
-              name: user.displayName,
-              studentId: user.uid,
-              language: _selectedLanguage,
-            );
+        if (user.role == UserRole.student) {
+          // Create student profile
+          ref.read(studentProfileProvider.notifier).createProfile(
+                name: user.displayName,
+                studentId: user.uid,
+                language: _selectedLanguage,
+                groupId: groupId,
+              );
 
-        if (mounted) context.goNamed('home');
+          if (mounted) context.goNamed('home');
+        } else {
+          // Teacher - go to teacher dashboard
+          if (mounted) context.goNamed('teacher_dashboard');
+        }
       }
     });
   }
@@ -138,6 +159,57 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     }
                     if (v.trim().length < 2) {
                       return 'Name must be at least 2 characters';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // ── Role Selector ────────────────────────────────────
+                Text('I am a...', style: AppTextStyles.labelLarge),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    _RoleButton(
+                      icon: Icons.school_rounded,
+                      label: 'Student',
+                      role: UserRole.student,
+                      selected: _selectedRole == UserRole.student,
+                      onTap: () => setState(() => _selectedRole = UserRole.student),
+                    ),
+                    const SizedBox(width: 12),
+                    _RoleButton(
+                      icon: Icons.person_rounded,
+                      label: 'Teacher',
+                      role: UserRole.teacher,
+                      selected: _selectedRole == UserRole.teacher,
+                      onTap: () => setState(() => _selectedRole = UserRole.teacher),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // ── Group ID field ───────────────────────────────────
+                Text(
+                  _selectedRole == UserRole.teacher 
+                      ? 'Class/Group ID (you teach)'
+                      : 'Class/Group ID',
+                  style: AppTextStyles.labelLarge,
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _groupIdController,
+                  decoration: InputDecoration(
+                    hintText: 'e.g. village_01, class_5a',
+                    prefixIcon: const Icon(Icons.group_outlined),
+                    helperText: _selectedRole == UserRole.teacher
+                        ? 'Students in this group will see your lessons'
+                        : 'Ask your teacher for the group ID',
+                    helperMaxLines: 2,
+                  ),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) {
+                      return 'Please enter your group ID';
                     }
                     return null;
                   },
@@ -394,6 +466,64 @@ class _LangButton extends StatelessWidget {
                 style: AppTextStyles.labelLarge.copyWith(
                   color: selected
                       ? AppColors.secondary
+                      : AppColors.grey600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RoleButton extends StatelessWidget {
+  const _RoleButton({
+    required this.icon,
+    required this.label,
+    required this.role,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final UserRole role;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppColors.primary.withValues(alpha: 0.1)
+                : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected ? AppColors.primary : AppColors.grey200,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: selected ? AppColors.primary : AppColors.grey600,
+                size: 22,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: selected
+                      ? AppColors.primary
                       : AppColors.grey600,
                 ),
               ),
