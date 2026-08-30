@@ -10,5 +10,6 @@ abstract final class AppRoutes {
   static const String leaderboard = '/home/leaderboard';
   static const String settings = '/home/settings';
   static const String profile = '/home/profile';
+  static const String teacherDashboard = '/teacher/dashboard';
   // lesson, quiz, quiz_result are nested under home — use goNamed() with params.
 }
