@@ -1,4 +1,3 @@
-import 'dart:js_interop';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -16,17 +15,7 @@ import '../../providers/lesson_provider.dart';
 import '../widgets/difficulty_badge.dart';
 import '../widgets/interactive_lesson_playground.dart';
 import '../widgets/lesson_illustration.dart';
-
-@JS('eduquestTts.speak')
-external void _jsSpeak(
-  JSString text,
-  JSString locale,
-  JSFunction? onEnd,
-  JSFunction? onError,
-);
-
-@JS('eduquestTts.stop')
-external void _jsStop();
+import 'tts_stub.dart' if (dart.library.js_interop) 'tts_web.dart';
 
 /// Displays a single topic lesson with text, illustration, live audio voice narration (TTS),
 /// bilingual Language Tabs (Hindi / English), and an interactive playground.
@@ -202,14 +191,14 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
           } else {
             _onLessonNarrationCompleted();
           }
-        }.toJS;
+        };
 
-        final onError = (JSAny? _) {
+        final onError = (dynamic _) {
           if (!mounted) return;
           _stopNarration();
-        }.toJS;
+        };
 
-        _jsSpeak(textToSpeak.toJS, _currentLocale.toJS, onEnd, onError);
+        playWebTts(textToSpeak, _currentLocale, onEnd, onError);
       } catch (e) {
         debugPrint('Web TTS fallback error: $e');
         // Fallback to flutter_tts
@@ -244,7 +233,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
   Future<void> _stopNarration() async {
     if (kIsWeb) {
       try {
-        _jsStop();
+        stopWebTts();
       } catch (_) {}
     } else {
       try {
