@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../settings/providers/settings_provider.dart';
 import '../../data/models/subject_model.dart';
 import '../../data/models/topic_model.dart';
 import '../../data/repositories/bundle_repository.dart';
@@ -42,6 +43,8 @@ class LessonsListScreen extends ConsumerWidget {
     if (topic.id.startsWith('science_plants')) return '🌱';
     if (topic.id.startsWith('science_water')) return '💧';
     if (topic.id.startsWith('science_animals')) return '🐾';
+    if (topic.id.startsWith('english')) return '📖';
+    if (topic.id.startsWith('history')) return '🏛️';
     return '📄';
   }
 
@@ -51,15 +54,18 @@ class LessonsListScreen extends ConsumerWidget {
     return AppColors.error;
   }
 
-  String _difficultyLabel(int d) {
-    if (d == 1) return 'Easy';
-    if (d == 2) return 'Medium';
-    return 'Hard';
+  String _difficultyLabel(int d, String locale) {
+    final isHindi = locale == 'hi';
+    if (d == 1) return isHindi ? 'सरल' : 'Easy';
+    if (d == 2) return isHindi ? 'मध्यम' : 'Medium';
+    return isHindi ? 'कठिन' : 'Hard';
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final subjectsAsync = ref.watch(subjectsProvider);
+    final selectedLang = ref.watch(selectedLanguageProvider);
+    final isHindi = selectedLang == 'hi';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -75,7 +81,7 @@ class LessonsListScreen extends ConsumerWidget {
             automaticallyImplyLeading: false,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
-                'Lessons',
+                isHindi ? 'पाठ एवं विषय (Lessons)' : 'Lessons',
                 style: AppTextStyles.headlineMedium.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -116,8 +122,12 @@ class LessonsListScreen extends ConsumerWidget {
             ),
             data: (subjects) {
               if (subjects.isEmpty) {
-                return const SliverFillRemaining(
-                  child: Center(child: Text('No lessons available.')),
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Text(
+                      isHindi ? 'कोई पाठ उपलब्ध नहीं है।' : 'No lessons available.',
+                    ),
+                  ),
                 );
               }
 
@@ -129,10 +139,11 @@ class LessonsListScreen extends ConsumerWidget {
                     return _SubjectSection(
                       subject: subject,
                       color: color,
+                      locale: selectedLang,
                       subjectEmoji: _emojiForSubject(subject),
                       topicEmojiBuilder: _emojiForTopic,
                       difficultyColorBuilder: _difficultyColor,
-                      difficultyLabelBuilder: _difficultyLabel,
+                      difficultyLabelBuilder: (d) => _difficultyLabel(d, selectedLang),
                     );
                   },
                   childCount: subjects.length,
@@ -154,6 +165,7 @@ class _SubjectSection extends StatefulWidget {
   const _SubjectSection({
     required this.subject,
     required this.color,
+    required this.locale,
     required this.subjectEmoji,
     required this.topicEmojiBuilder,
     required this.difficultyColorBuilder,
@@ -162,6 +174,7 @@ class _SubjectSection extends StatefulWidget {
 
   final SubjectModel subject;
   final Color color;
+  final String locale;
   final String subjectEmoji;
   final String Function(TopicModel) topicEmojiBuilder;
   final Color Function(int) difficultyColorBuilder;
@@ -176,6 +189,7 @@ class _SubjectSectionState extends State<_SubjectSection> {
 
   @override
   Widget build(BuildContext context) {
+    final isHindi = widget.locale == 'hi';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: Column(
@@ -216,13 +230,16 @@ class _SubjectSectionState extends State<_SubjectSection> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.subject.localizedName('en'),
+                          widget.subject.localizedName(widget.locale),
                           style: AppTextStyles.headlineSmall.copyWith(
                             color: AppColors.grey800,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          '${widget.subject.topics.length} topics',
+                          isHindi
+                              ? '${widget.subject.topics.length} विषय (Topics)'
+                              : '${widget.subject.topics.length} topics',
                           style: AppTextStyles.bodySmall.copyWith(
                             color: AppColors.grey600,
                           ),
@@ -248,6 +265,7 @@ class _SubjectSectionState extends State<_SubjectSection> {
                 return _TopicTile(
                   topic: topic,
                   color: widget.color,
+                  locale: widget.locale,
                   emoji: widget.topicEmojiBuilder(topic),
                   difficultyColor:
                       widget.difficultyColorBuilder(topic.difficulty),
@@ -274,6 +292,7 @@ class _TopicTile extends StatelessWidget {
   const _TopicTile({
     required this.topic,
     required this.color,
+    required this.locale,
     required this.emoji,
     required this.difficultyColor,
     required this.difficultyLabel,
@@ -281,12 +300,14 @@ class _TopicTile extends StatelessWidget {
 
   final TopicModel topic;
   final Color color;
+  final String locale;
   final String emoji;
   final Color difficultyColor;
   final String difficultyLabel;
 
   @override
   Widget build(BuildContext context) {
+    final isHindi = locale == 'hi';
     return GestureDetector(
       onTap: () => context.goNamed(
         'lesson',
@@ -329,7 +350,7 @@ class _TopicTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    topic.localizedName('en'),
+                    topic.localizedName(locale),
                     style: AppTextStyles.bodyLarge.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.grey800,
@@ -357,7 +378,7 @@ class _TopicTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '${topic.questions.length} questions',
+                        isHindi ? '${topic.questions.length} प्रश्न' : '${topic.questions.length} questions',
                         style: AppTextStyles.bodySmall,
                       ),
                     ],

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,7 +7,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../providers/auth_provider.dart';
 
 /// Splash screen shown on app launch.
 /// Checks Firebase auth state and navigates accordingly.
@@ -55,21 +55,34 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   Future<void> _checkAuth() async {
     try {
-      final authService = ref.read(authServiceProvider);
-      final isSignedIn = authService.isSignedIn;
-
-      // Also check local profile
       final box = Hive.box<String>(AppConstants.hiveUserBox);
+      final authUserJson = box.get('authUser');
       final hasProfile = box.get('profile') != null;
 
-      if (mounted) {
-        // If Firebase signed in AND local profile exists, go to home
-        if (isSignedIn && hasProfile) {
+      if (authUserJson != null) {
+        try {
+          final decoded = jsonDecode(authUserJson) as Map<String, dynamic>;
+          final role = decoded['role'] as String?;
+          if (mounted) {
+            if (role == 'teacher') {
+              context.goNamed('teacher_dashboard');
+            } else {
+              context.goNamed('home');
+            }
+          }
+          return;
+        } catch (_) {}
+      }
+
+      if (hasProfile) {
+        if (mounted) {
           context.goNamed('home');
-        } else {
-          // Otherwise go to login/signup
-          context.goNamed('login');
         }
+        return;
+      }
+
+      if (mounted) {
+        context.goNamed('login');
       }
     } catch (_) {
       if (mounted) {

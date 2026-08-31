@@ -1,3 +1,5 @@
+import 'dart:js_interop';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,13 +11,25 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../home/providers/home_provider.dart';
+import '../../../settings/providers/settings_provider.dart';
 import '../../providers/lesson_provider.dart';
 import '../widgets/difficulty_badge.dart';
 import '../widgets/interactive_lesson_playground.dart';
 import '../widgets/lesson_illustration.dart';
 
+@JS('eduquestTts.speak')
+external void _jsSpeak(
+  JSString text,
+  JSString locale,
+  JSFunction? onEnd,
+  JSFunction? onError,
+);
+
+@JS('eduquestTts.stop')
+external void _jsStop();
+
 /// Displays a single topic lesson with text, illustration, live audio voice narration (TTS),
-/// and a topic-specific interactive playground.
+/// bilingual Language Tabs (Hindi / English), and an interactive playground.
 class LessonScreen extends ConsumerStatefulWidget {
   const LessonScreen({super.key, required this.topicId});
 
@@ -31,102 +45,124 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
   int _activeSentenceIndex = -1;
   double _playbackProgress = 0.0;
   List<String> _sentences = [];
-  String _currentLocale = 'en';
+  String _currentLocale = 'hi'; // Default to Hindi active tab
 
   @override
   void initState() {
     super.initState();
-    _initTts();
+    // Default current locale to global selected language (which defaults to 'hi')
+    _currentLocale = ref.read(selectedLanguageProvider);
+    if (!kIsWeb) {
+      _initNativeTts();
+    }
   }
 
-  Future<void> _initTts() async {
+  Future<void> _initNativeTts() async {
+    _flutterTts.setStartHandler(() {
+      if (mounted) setState(() => _isPlaying = true);
+    });
+
+    _flutterTts.setCompletionHandler(() {
+      if (!mounted || !_isPlaying) return;
+      if (_activeSentenceIndex < _sentences.length - 1) {
+        _speakSentence(_activeSentenceIndex + 1);
+      } else {
+        _onLessonNarrationCompleted();
+      }
+    });
+
+    _flutterTts.setErrorHandler((msg) {
+      debugPrint('TTS native error: $msg');
+      if (!mounted) return;
+      _stopNarration();
+    });
+
+    _flutterTts.setCancelHandler(() {
+      if (!mounted) return;
+      setState(() => _isPlaying = false);
+    });
+
+    await _configureNativeTts(_currentLocale);
+  }
+
+  Future<void> _configureNativeTts(String locale) async {
+    final isHindi = locale == 'hi';
+    final langCode = isHindi ? 'hi-IN' : 'en-US';
+
     try {
-      final isHindi = _currentLocale == 'hi';
-      final langCode = isHindi ? 'hi-IN' : 'en-US';
+      await _flutterTts.stop();
       await _flutterTts.setLanguage(langCode);
-      await _flutterTts.setSpeechRate(0.50); // Natural, clear conversational rate
-      await _flutterTts.setPitch(1.05); // Friendly, clear teacher pitch
+      await _flutterTts.setSpeechRate(0.48);
+      await _flutterTts.setPitch(1.0);
       await _flutterTts.setVolume(1.0);
 
-      // Attempt to pick high quality natural human voice
       try {
-        final voices = await _flutterTts.getVoices;
+        final dynamic voices = await _flutterTts.getVoices;
         if (voices is List && voices.isNotEmpty) {
-          final voiceList = voices.cast<Map>();
-          Map? selectedVoice;
-          for (final v in voiceList) {
-            final name = (v['name'] ?? '').toString().toLowerCase();
-            final locale = (v['locale'] ?? v['lang'] ?? '').toString().toLowerCase();
+          Map<String, String>? bestVoice;
+          for (final item in voices) {
+            if (item is Map) {
+              final name = (item['name'] ?? '').toString();
+              final voiceLocale = (item['locale'] ?? item['lang'] ?? '').toString();
+              final nameLower = name.toLowerCase();
+              final locLower = voiceLocale.toLowerCase();
 
-            if (isHindi) {
-              if (locale.contains('hi') || name.contains('hindi') || name.contains('india')) {
-                selectedVoice = v;
-                break;
-              }
-            } else {
-              // Prefer natural, neural, google, siri, or edge natural voices
-              if (name.contains('natural') ||
-                  name.contains('neural') ||
-                  name.contains('wavenet') ||
-                  name.contains('journey') ||
-                  name.contains('google us') ||
-                  name.contains('samantha') ||
-                  name.contains('jenny') ||
-                  name.contains('guy')) {
-                selectedVoice = v;
-                break;
+              if (isHindi) {
+                if (locLower.contains('hi') ||
+                    nameLower.contains('hindi') ||
+                    nameLower.contains('हिन्दी') ||
+                    nameLower.contains('india')) {
+                  bestVoice = {
+                    'name': name,
+                    'locale': voiceLocale.isNotEmpty ? voiceLocale : 'hi-IN'
+                  };
+                  break;
+                }
+              } else {
+                if (locLower.contains('en') &&
+                    (nameLower.contains('natural') ||
+                        nameLower.contains('google') ||
+                        nameLower.contains('jenny') ||
+                        nameLower.contains('guy'))) {
+                  bestVoice = {
+                    'name': name,
+                    'locale': voiceLocale.isNotEmpty ? voiceLocale : 'en-US'
+                  };
+                  break;
+                }
               }
             }
           }
 
-          if (selectedVoice != null) {
-            await _flutterTts.setVoice({
-              "name": selectedVoice['name'],
-              "locale": selectedVoice['locale'] ?? selectedVoice['lang'] ?? langCode,
-            });
+          if (bestVoice != null) {
+            await _flutterTts.setVoice(bestVoice);
           }
         }
       } catch (_) {}
-
-      _flutterTts.setCompletionHandler(() {
-        if (!mounted || !_isPlaying) return;
-        if (_activeSentenceIndex < _sentences.length - 1) {
-          _speakSentence(_activeSentenceIndex + 1);
-        } else {
-          _onLessonNarrationCompleted();
-        }
-      });
-
-      _flutterTts.setErrorHandler((msg) {
-        if (!mounted) return;
-        _stopNarration();
-      });
-
-      _flutterTts.setCancelHandler(() {
-        if (!mounted) return;
-        setState(() => _isPlaying = false);
-      });
-    } catch (_) {
-      // Graceful fallback if TTS fails on specific platform
-    }
+    } catch (_) {}
   }
 
   void _onLessonNarrationCompleted() {
     _stopNarration();
     // Award 15 XP for completing the audio lesson read-along!
     ref.read(studentProfileProvider.notifier).addXp(15);
+    final isHindi = _currentLocale == 'hi';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        content: const Row(
+        content: Row(
           children: [
-            Text('⭐', style: TextStyle(fontSize: 20)),
-            SizedBox(width: 10),
-            Text(
-              'Awesome! +15 XP earned for listening to the lesson!',
-              style: TextStyle(fontWeight: FontWeight.bold),
+            const Text('⭐', style: TextStyle(fontSize: 20)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                isHindi
+                    ? 'शानदार! पाठ सुनने के लिए +15 XP मिले!'
+                    : 'Awesome! +15 XP earned for listening to the lesson!',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
@@ -141,18 +177,57 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
       return;
     }
 
+    final textToSpeak = _sentences[index].trim();
+    if (textToSpeak.isEmpty) {
+      if (index < _sentences.length - 1) {
+        _speakSentence(index + 1);
+      } else {
+        _onLessonNarrationCompleted();
+      }
+      return;
+    }
+
     setState(() {
       _isPlaying = true;
       _activeSentenceIndex = index;
       _playbackProgress = (index + 1) / _sentences.length;
     });
 
-    try {
-      await _flutterTts.stop();
-      await _flutterTts.setLanguage(_currentLocale == 'hi' ? 'hi-IN' : 'en-US');
-      await _flutterTts.speak(_sentences[index]);
-    } catch (_) {
-      // Fallback
+    if (kIsWeb) {
+      try {
+        final onEnd = () {
+          if (!mounted || !_isPlaying) return;
+          if (_activeSentenceIndex < _sentences.length - 1) {
+            _speakSentence(_activeSentenceIndex + 1);
+          } else {
+            _onLessonNarrationCompleted();
+          }
+        }.toJS;
+
+        final onError = (JSAny? _) {
+          if (!mounted) return;
+          _stopNarration();
+        }.toJS;
+
+        _jsSpeak(textToSpeak.toJS, _currentLocale.toJS, onEnd, onError);
+      } catch (e) {
+        debugPrint('Web TTS fallback error: $e');
+        // Fallback to flutter_tts
+        try {
+          await _flutterTts.stop();
+          await _flutterTts.setLanguage(_currentLocale == 'hi' ? 'hi-IN' : 'en-US');
+          await _flutterTts.speak(textToSpeak);
+        } catch (_) {}
+      }
+    } else {
+      try {
+        await _flutterTts.stop();
+        final isHindi = _currentLocale == 'hi';
+        await _flutterTts.setLanguage(isHindi ? 'hi-IN' : 'en-US');
+        await _flutterTts.speak(textToSpeak);
+      } catch (e) {
+        debugPrint('Native TTS error: $e');
+      }
     }
   }
 
@@ -167,9 +242,15 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
   }
 
   Future<void> _stopNarration() async {
-    try {
-      await _flutterTts.stop();
-    } catch (_) {}
+    if (kIsWeb) {
+      try {
+        _jsStop();
+      } catch (_) {}
+    } else {
+      try {
+        await _flutterTts.stop();
+      } catch (_) {}
+    }
     if (mounted) {
       setState(() {
         _isPlaying = false;
@@ -195,6 +276,21 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
     }
   }
 
+  void _switchLanguage(String newLocale, String newText) {
+    if (_currentLocale == newLocale) return;
+    _stopNarration();
+    setState(() {
+      _currentLocale = newLocale;
+      _activeSentenceIndex = -1;
+      _playbackProgress = 0.0;
+      _sentences = _splitIntoSentences(newText);
+    });
+    ref.read(selectedLanguageProvider.notifier).state = newLocale;
+    if (!kIsWeb) {
+      _configureNativeTts(newLocale);
+    }
+  }
+
   @override
   void didUpdateWidget(covariant LessonScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -208,7 +304,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
 
   @override
   void dispose() {
-    _flutterTts.stop();
+    _stopNarration();
     super.dispose();
   }
 
@@ -224,8 +320,8 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
   }
 
   List<String> _splitIntoSentences(String text) {
-    // Splits by period (English) or danda (Hindi).
-    final reg = RegExp(r'[.।]+');
+    // Splits by period (English), danda (Hindi), or newline
+    final reg = RegExp(r'[.।\n]+');
     return text
         .split(reg)
         .map((s) => s.trim())
@@ -236,8 +332,6 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
   @override
   Widget build(BuildContext context) {
     final topicAsync = ref.watch(topicByIdProvider(widget.topicId));
-    const locale = 'en'; // Defaults to English
-    _currentLocale = locale;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -257,6 +351,10 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
               ),
             );
           }
+
+          // Keep current locale in sync with selection
+          final locale = _currentLocale;
+          final isHindi = locale == 'hi';
 
           final lessonText = topic.localizedLessonText(locale);
           if (_sentences.isEmpty) {
@@ -280,6 +378,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                   topic.localizedName(locale),
                   style: AppTextStyles.headlineSmall.copyWith(
                     color: Colors.white,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 actions: [
@@ -296,6 +395,118 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // ── Language Selector Tabs (Hindi Active by default) ────
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.grey100,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.grey200),
+                        ),
+                        child: Row(
+                          children: [
+                            // Hindi Tab (Active by default)
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => _switchLanguage('hi', topic.localizedLessonText('hi')),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: isHindi ? AppColors.primary : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: isHindi
+                                        ? [
+                                            BoxShadow(
+                                              color: AppColors.primary.withValues(alpha: 0.3),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ]
+                                        : [],
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text('🇮🇳', style: TextStyle(fontSize: 18)),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'हिन्दी (Hindi)',
+                                        style: AppTextStyles.labelLarge.copyWith(
+                                          color: isHindi ? Colors.white : AppColors.grey600,
+                                          fontWeight: isHindi ? FontWeight.bold : FontWeight.w600,
+                                        ),
+                                      ),
+                                      if (isHindi) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: const BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            // English Tab
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => _switchLanguage('en', topic.localizedLessonText('en')),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 200),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: !isHindi ? AppColors.primary : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: !isHindi
+                                        ? [
+                                            BoxShadow(
+                                              color: AppColors.primary.withValues(alpha: 0.3),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ]
+                                        : [],
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text('🇬🇧', style: TextStyle(fontSize: 18)),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'English',
+                                        style: AppTextStyles.labelLarge.copyWith(
+                                          color: !isHindi ? Colors.white : AppColors.grey600,
+                                          fontWeight: !isHindi ? FontWeight.bold : FontWeight.w600,
+                                        ),
+                                      ),
+                                      if (!isHindi) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          decoration: const BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
                       // ── Illustration ──────────────────────────────────
                       LessonIllustration(
                         illustrationRef: topic.illustrationRef,
@@ -309,7 +520,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                           const Text('🎮', style: TextStyle(fontSize: 20)),
                           const SizedBox(width: 8),
                           Text(
-                            'Interactive Play',
+                            isHindi ? 'इंटरैक्टिव अभ्यास (Interactive Play)' : 'Interactive Play',
                             style: AppTextStyles.headlineMedium,
                           ),
                         ],
@@ -324,14 +535,16 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                           const Text('🔊', style: TextStyle(fontSize: 20)),
                           const SizedBox(width: 8),
                           Text(
-                            'Lesson Voice Read-Along',
+                            isHindi ? 'पाठ वाचन (Voice Read-Along)' : 'Lesson Voice Read-Along',
                             style: AppTextStyles.headlineMedium,
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Tap Play to hear audio narration or tap any sentence to listen.',
+                        isHindi
+                            ? 'ऑडियो सुनने के लिए Play दबाएं या किसी भी वाक्य पर टैप करें।'
+                            : 'Tap Play to hear audio narration or tap any sentence to listen.',
                         style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey600),
                       ),
                       const SizedBox(height: 12),
@@ -360,7 +573,9 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                                     color: AppColors.primary,
                                   ),
                                   onPressed: _toggleNarration,
-                                  tooltip: _isPlaying ? 'Pause Narration' : 'Play Voice Narration',
+                                  tooltip: _isPlaying
+                                      ? (isHindi ? 'रोकें (Pause)' : 'Pause Narration')
+                                      : (isHindi ? 'पाठ सुनें (Play Voice Narration)' : 'Play Voice Narration'),
                                 ),
                                 IconButton(
                                   icon: const Icon(
@@ -369,7 +584,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                                     color: AppColors.grey600,
                                   ),
                                   onPressed: _resetNarration,
-                                  tooltip: 'Restart from beginning',
+                                  tooltip: isHindi ? 'शुरू से दोबारा सुनें' : 'Restart from beginning',
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
@@ -380,7 +595,9 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            _isPlaying ? 'Speaking aloud... 🔊' : 'Audio Ready',
+                                            _isPlaying
+                                                ? (isHindi ? 'वाचन चल रहा है... 🔊' : 'Speaking aloud... 🔊')
+                                                : (isHindi ? 'ऑडियो तैयार है 🇮🇳' : 'Audio Ready 🇬🇧'),
                                             style: AppTextStyles.labelSmall.copyWith(
                                               color: _isPlaying ? AppColors.primary : AppColors.grey600,
                                               fontWeight: FontWeight.bold,
@@ -413,12 +630,14 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                               text: TextSpan(
                                 children: List.generate(_sentences.length, (index) {
                                   final isHighlighted = index == _activeSentenceIndex;
+                                  final delimiter = isHindi ? '। ' : '. ';
                                   return TextSpan(
-                                    text: '${_sentences[index]}. ',
+                                    text: '${_sentences[index]}$delimiter',
                                     recognizer: TapGestureRecognizer()
                                       ..onTap = () => _speakSentence(index),
                                     style: AppTextStyles.bodyLarge.copyWith(
-                                      height: 1.7,
+                                      height: 1.8,
+                                      fontSize: 17,
                                       backgroundColor: isHighlighted
                                           ? AppColors.primary.withValues(alpha: 0.2)
                                           : Colors.transparent,
@@ -456,10 +675,13 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                '${topic.questions.length} questions ready — '
-                                'earn up to ${topic.questions.length * AppConstants.xpPerCorrectAnswer + AppConstants.xpPerLessonComplete} XP',
+                                isHindi
+                                    ? '${topic.questions.length} प्रश्न तैयार हैं — ${topic.questions.length * AppConstants.xpPerCorrectAnswer + AppConstants.xpPerLessonComplete} XP तक अर्जित करें'
+                                    : '${topic.questions.length} questions ready — '
+                                        'earn up to ${topic.questions.length * AppConstants.xpPerLessonComplete} XP',
                                 style: AppTextStyles.bodyMedium.copyWith(
                                   color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
@@ -470,7 +692,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
 
                       // ── Start Quiz CTA ────────────────────────────────
                       PrimaryButton(
-                        label: 'Start Quiz',
+                        label: isHindi ? 'प्रश्नोत्तरी शुरू करें (Start Quiz)' : 'Start Quiz',
                         icon: Icons.play_arrow_rounded,
                         onPressed: () => context.goNamed(
                           'quiz',
@@ -482,7 +704,7 @@ class _LessonScreenState extends ConsumerState<LessonScreen> {
                         width: double.infinity,
                         child: OutlinedButton(
                           onPressed: () => context.pop(),
-                          child: const Text('Back to Subjects'),
+                          child: Text(isHindi ? 'विषयों पर वापस जाएं (Back to Subjects)' : 'Back to Subjects'),
                         ),
                       ),
                       const SizedBox(height: 24),

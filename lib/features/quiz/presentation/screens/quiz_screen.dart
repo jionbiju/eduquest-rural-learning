@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../settings/providers/settings_provider.dart';
 import '../../providers/quiz_provider.dart';
 import '../widgets/answer_option_tile.dart';
 import '../widgets/xp_reward_popup.dart';
 
-/// Main quiz screen — shows one question at a time with adaptive difficulty.
+/// Main quiz screen — shows one question at a time with adaptive difficulty
+/// and full multilingual support (Hindi / English).
 class QuizScreen extends ConsumerStatefulWidget {
   const QuizScreen({super.key, required this.topicId});
 
@@ -45,6 +47,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
   Widget build(BuildContext context) {
     final quizState = ref.watch(quizProvider(widget.topicId));
     final notifier = ref.read(quizProvider(widget.topicId).notifier);
+    final selectedLang = ref.watch(selectedLanguageProvider);
+    final isHindi = selectedLang == 'hi';
 
     // Show loading until initialized and questions are loaded.
     if (!_initialized || quizState.questions.isEmpty) {
@@ -88,13 +92,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
     final progress =
         (quizState.currentIndex + 1) / quizState.totalQuestions;
 
+    final questionTitle = isHindi
+        ? 'प्रश्न ${quizState.currentIndex + 1} / ${quizState.totalQuestions}'
+        : 'Question ${quizState.currentIndex + 1} of ${quizState.totalQuestions}';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         title: Text(
-          'Question ${quizState.currentIndex + 1} of ${quizState.totalQuestions}',
+          questionTitle,
           style: AppTextStyles.headlineSmall.copyWith(color: Colors.white),
         ),
         bottom: PreferredSize(
@@ -140,6 +148,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
                         '⭐ ${_xpForDifficulty(question.difficulty)} XP',
                         style: AppTextStyles.labelMedium.copyWith(
                           color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
@@ -147,7 +156,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
                 ),
                 const SizedBox(height: 20),
 
-                // ── Question text ────────────────────────────────────
+                // ── Question text in Hindi / active language ─────────
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
@@ -164,8 +173,10 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
                     ],
                   ),
                   child: Text(
-                    question.localizedText('en'),
-                    style: AppTextStyles.headlineMedium,
+                    question.localizedText(selectedLang),
+                    style: AppTextStyles.headlineMedium.copyWith(
+                      height: 1.4,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -203,7 +214,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
                   );
                 }),
 
-                // ── Explanation (shown after answer) ─────────────────
+                // ── Explanation (shown after answer) in Hindi / active lang ──
                 if (quizState.isAnswered) ...[
                   const SizedBox(height: 4),
                   AnimatedContainer(
@@ -234,18 +245,21 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
                             children: [
                               Text(
                                 quizState.isCorrect
-                                    ? 'Correct!'
-                                    : 'Not quite!',
+                                    ? (isHindi ? 'शाबाश! सही उत्तर' : 'Correct!')
+                                    : (isHindi ? 'कोई बात नहीं, सही उत्तर देखें' : 'Not quite!'),
                                 style: AppTextStyles.headlineSmall.copyWith(
                                   color: quizState.isCorrect
                                       ? AppColors.success
                                       : AppColors.error,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                question.localizedExplanation('en'),
-                                style: AppTextStyles.bodyMedium,
+                                question.localizedExplanation(selectedLang),
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  height: 1.4,
+                                ),
                               ),
                             ],
                           ),
@@ -256,8 +270,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen>
                   const SizedBox(height: 24),
                   PrimaryButton(
                     label: quizState.isLastQuestion
-                        ? 'See Results'
-                        : 'Next Question',
+                        ? (isHindi ? 'परिणाम देखें (See Results)' : 'See Results')
+                        : (isHindi ? 'अगला प्रश्न (Next Question)' : 'Next Question'),
                     icon: quizState.isLastQuestion
                         ? Icons.emoji_events_rounded
                         : Icons.arrow_forward_rounded,

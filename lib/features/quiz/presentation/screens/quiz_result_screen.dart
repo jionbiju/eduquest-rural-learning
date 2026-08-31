@@ -8,6 +8,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../home/providers/daily_quest_provider.dart';
 import '../../../home/providers/home_provider.dart';
+import '../../../settings/providers/settings_provider.dart';
 import '../../../sync/data/models/sync_action.dart';
 import '../../../sync/providers/sync_provider.dart';
 
@@ -111,16 +112,26 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
     return '💪';
   }
 
-  String get _resultTitle {
-    if (_accuracy >= 0.8) return 'Excellent!';
-    if (_accuracy >= 0.5) return 'Good job!';
-    return 'Keep going!';
+  String _resultTitle(bool isHindi) {
+    if (_accuracy >= 0.8) return isHindi ? 'शानदार प्रदर्शन!' : 'Excellent!';
+    if (_accuracy >= 0.5) return isHindi ? 'बहुत बढ़िया प्रयास!' : 'Good job!';
+    return isHindi ? 'अभ्यास जारी रखें!' : 'Keep going!';
   }
 
-  String get _resultMessage {
-    if (_accuracy >= 0.8) return 'You crushed it! Your score is amazing.';
-    if (_accuracy >= 0.5) return 'Solid effort! Review the ones you missed.';
-    return 'Practice makes perfect. Try again to improve!';
+  String _resultMessage(bool isHindi) {
+    if (_accuracy >= 0.8) {
+      return isHindi
+          ? 'आपने कमाल कर दिया! आपका स्कोर बहुत उत्कृष्ट है।'
+          : 'You crushed it! Your score is amazing.';
+    }
+    if (_accuracy >= 0.5) {
+      return isHindi
+          ? 'सराहनीय प्रयास! छूटे हुए प्रश्नों को फिर से दोहराएं।'
+          : 'Solid effort! Review the ones you missed.';
+    }
+    return isHindi
+        ? 'अभ्यास ही सफलता की कुंजी है। सुधार के लिए पुनः प्रयास करें!'
+        : 'Practice makes perfect. Try again to improve!';
   }
 
   Color get _scoreColor {
@@ -131,6 +142,9 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final selectedLang = ref.watch(selectedLanguageProvider);
+    final isHindi = selectedLang == 'hi';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -141,10 +155,14 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
               const Spacer(),
               Text(_resultEmoji, style: const TextStyle(fontSize: 80)),
               const SizedBox(height: 16),
-              Text(_resultTitle, style: AppTextStyles.displayMedium),
+              Text(
+                _resultTitle(isHindi),
+                style: AppTextStyles.displayMedium.copyWith(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 8),
               Text(
-                _resultMessage,
+                _resultMessage(isHindi),
                 style: AppTextStyles.bodyLarge.copyWith(
                     color: AppColors.grey600),
                 textAlign: TextAlign.center,
@@ -169,20 +187,20 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _StatItem(
-                          label: 'Score',
+                          label: isHindi ? 'अंक (Score)' : 'Score',
                           value:
                               '${widget.correctCount} / ${widget.totalQuestions}',
                           color: _scoreColor,
                         ),
                         Container(width: 1, height: 48, color: AppColors.grey200),
                         _StatItem(
-                          label: 'Accuracy',
+                          label: isHindi ? 'सटीकता (Accuracy)' : 'Accuracy',
                           value: '${(_accuracy * 100).toInt()}%',
                           color: _scoreColor,
                         ),
                         Container(width: 1, height: 48, color: AppColors.grey200),
                         _StatItem(
-                          label: 'XP Earned',
+                          label: isHindi ? 'अर्जित XP (XP)' : 'XP Earned',
                           value: '+${widget.xpEarned}',
                           color: AppColors.xpGold,
                         ),
@@ -208,7 +226,7 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
               ),
               const Spacer(),
               PrimaryButton(
-                label: 'Back to Home',
+                label: isHindi ? 'मुख्य पृष्ठ पर लौटें (Back to Home)' : 'Back to Home',
                 icon: Icons.home_rounded,
                 onPressed: () => context.goNamed('home'),
               ),
@@ -216,20 +234,18 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  // Use go() with full path to avoid GoRouter nested param issues.
-                  // Path: /home/lesson/{topicId}/quiz
                   onPressed: () => context.go(
                     '/home/lesson/${widget.topicId}/quiz',
                   ),
                   icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Try Again'),
+                  label: Text(isHindi ? 'पुनः प्रयास करें (Try Again)' : 'Try Again'),
                 ),
               ),
               const SizedBox(height: 12),
               TextButton.icon(
                 onPressed: () => context.goNamed('leaderboard'),
                 icon: const Icon(Icons.leaderboard_rounded),
-                label: const Text('View Leaderboard'),
+                label: Text(isHindi ? 'लीडरबोर्ड देखें (Leaderboard)' : 'View Leaderboard'),
               ),
             ],
           ),
@@ -256,10 +272,10 @@ class _StatItem extends StatelessWidget {
       children: [
         Text(
           value,
-          style: AppTextStyles.displayMedium.copyWith(color: color),
+          style: AppTextStyles.displayMedium.copyWith(color: color, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
-        Text(label, style: AppTextStyles.bodySmall),
+        Text(label, style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600)),
       ],
     );
   }

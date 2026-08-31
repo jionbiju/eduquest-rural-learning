@@ -9,6 +9,7 @@ import '../../../../core/widgets/xp_progress_bar.dart';
 import '../../../lessons/data/models/subject_model.dart';
 import '../../../lessons/data/repositories/bundle_repository.dart';
 import '../../../sync/providers/sync_provider.dart';
+import '../../../settings/providers/settings_provider.dart';
 import '../../providers/daily_quest_provider.dart';
 import '../../providers/home_provider.dart';
 import '../widgets/daily_quest_banner.dart';
@@ -51,6 +52,8 @@ class HomeScreen extends ConsumerWidget {
     final profile = ref.watch(studentProfileProvider);
     final subjectsAsync = ref.watch(subjectsProvider);
     final dailyQuest = ref.watch(dailyQuestProvider);
+    final selectedLang = ref.watch(selectedLanguageProvider);
+    final isHindi = selectedLang == 'hi';
     final isOnline = ref.watch(connectivityProvider).maybeWhen(
       data: (v) => v,
       orElse: () => true,
@@ -89,7 +92,7 @@ class HomeScreen extends ConsumerWidget {
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                     child: DailyQuestBanner(
                       questTitle: dailyQuest.isCompleted
-                          ? '🎉 Daily Quest Complete!'
+                          ? (isHindi ? '🎉 दैनिक खोज पूरी हुई!' : '🎉 Daily Quest Complete!')
                           : dailyQuest.questTitle,
                       progress: dailyQuest.progress,
                       progressLabel: dailyQuest.progressLabel,
@@ -107,12 +110,12 @@ class HomeScreen extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Subjects',
+                          isHindi ? 'विषय (Subjects)' : 'Subjects',
                           style: AppTextStyles.headlineMedium,
                         ),
                         TextButton(
                           onPressed: () => context.goNamed('lessons'),
-                          child: const Text('See all'),
+                          child: Text(isHindi ? 'सभी देखें' : 'See all'),
                         ),
                       ],
                     ),
@@ -145,7 +148,7 @@ class HomeScreen extends ConsumerWidget {
                           final subject = subjects[index];
                           final color = _colorForIndex(index);
                           return SubjectCard(
-                            title: subject.localizedName('en'),
+                            title: subject.localizedName(selectedLang),
                             emoji: _emojiForSubject(subject),
                             color: color,
                             topicsCount: subject.topics.length,
